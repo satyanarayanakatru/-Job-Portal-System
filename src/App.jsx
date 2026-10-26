@@ -9,12 +9,23 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
+import CompanyList from './pages/CompanyList';
+import CompanyDetails from './pages/CompanyDetails';
 
 function AppLayout() {
   const location = useLocation();
-  // Hide public navbar on auth pages (Login, Register) and dedicated dashboard with its own sidebar
-  const noNavbarRoutes = ['/login', '/register', '/dashboard'];
-  const shouldShowNavbar = !noNavbarRoutes.includes(location.pathname);
+
+  // Hide top public navbar on auth pages & app pages that use the enterprise sidebar (DashboardLayout)
+  const isAuthPage = ['/login', '/register'].includes(location.pathname);
+  const isAppDashboard =
+    location.pathname.startsWith('/dashboard') ||
+    location.pathname.startsWith('/companies') ||
+    location.pathname.startsWith('/jobs') ||
+    location.pathname.startsWith('/applications') ||
+    location.pathname.startsWith('/profile') ||
+    location.pathname.startsWith('/reports');
+
+  const shouldShowNavbar = !isAuthPage && !isAppDashboard;
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans antialiased">
@@ -42,12 +53,30 @@ function AppLayout() {
             }
           />
 
-          {/* Protected Routes - Module 2 Dashboard */}
+          {/* Protected Routes - Module 2: Dashboard */}
           <Route
             path="/dashboard"
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Protected Routes - Module 3: Company Management */}
+          <Route
+            path="/companies"
+            element={
+              <ProtectedRoute>
+                <CompanyList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/companies/:id"
+            element={
+              <ProtectedRoute>
+                <CompanyDetails />
               </ProtectedRoute>
             }
           />
