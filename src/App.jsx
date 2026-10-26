@@ -13,6 +13,7 @@ import CompanyList from './pages/CompanyList';
 import CompanyDetails from './pages/CompanyDetails';
 import JobManagement from './pages/JobManagement';
 import JobDetails from './pages/JobDetails';
+import JobSearch from './pages/JobSearch';
 
 function AppLayout() {
   const location = useLocation();
@@ -23,6 +24,7 @@ function AppLayout() {
     location.pathname.startsWith('/dashboard') ||
     location.pathname.startsWith('/companies') ||
     location.pathname.startsWith('/jobs') ||
+    location.pathname.startsWith('/search') ||
     location.pathname.startsWith('/applications') ||
     location.pathname.startsWith('/profile') ||
     location.pathname.startsWith('/reports');
@@ -83,7 +85,7 @@ function AppLayout() {
             }
           />
 
-          {/* Protected Routes - Module 4: Job Posting */}
+          {/* Protected Routes - Module 4: Job Posting Management */}
           <Route
             path="/jobs"
             element={
@@ -92,6 +94,26 @@ function AppLayout() {
               </ProtectedRoute>
             }
           />
+
+          {/* Protected Routes - Module 5: Candidate Job Search Engine */}
+          <Route
+            path="/jobs/search"
+            element={
+              <ProtectedRoute>
+                <JobSearch />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/search"
+            element={
+              <ProtectedRoute>
+                <JobSearch />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Job Details View */}
           <Route
             path="/jobs/:id"
             element={

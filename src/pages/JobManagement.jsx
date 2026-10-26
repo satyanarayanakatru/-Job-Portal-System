@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import JobPostCard from '../components/jobs/JobPostCard';
 import JobPostModal from '../components/jobs/JobPostModal';
@@ -195,6 +196,24 @@ export default function JobManagement() {
     <DashboardLayout>
       <div className="space-y-6 max-w-7xl mx-auto">
         
+        {/* Navigation Tabs (Module 4 vs Module 5) */}
+        <div className="flex items-center space-x-2 border-b border-slate-200 pb-3">
+          <Link
+            to="/jobs/search"
+            className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition flex items-center gap-1.5"
+          >
+            <Search className="w-3.5 h-3.5" />
+            <span>Job Search Engine (Module 5)</span>
+          </Link>
+          <Link
+            to="/jobs"
+            className="px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-xs transition flex items-center gap-1.5"
+          >
+            <Briefcase className="w-3.5 h-3.5" />
+            <span>Manage Postings (Module 4)</span>
+          </Link>
+        </div>
+
         {/* Header Banner */}
         <div className="bg-white rounded-3xl border border-slate-200/90 p-6 sm:p-8 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-2">
