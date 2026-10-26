@@ -8,13 +8,13 @@ import PublicRoute from './components/common/PublicRoute';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import DashboardPreview from './pages/DashboardPreview';
+import Dashboard from './pages/Dashboard';
 
 function AppLayout() {
   const location = useLocation();
-  // Hide Navbar on authentication screens (Login and Register) for a distraction-free full-screen experience
-  const authRoutes = ['/login', '/register'];
-  const shouldShowNavbar = !authRoutes.includes(location.pathname);
+  // Hide public navbar on auth pages (Login, Register) and dedicated dashboard with its own sidebar
+  const noNavbarRoutes = ['/login', '/register', '/dashboard'];
+  const shouldShowNavbar = !noNavbarRoutes.includes(location.pathname);
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans antialiased">
@@ -42,12 +42,12 @@ function AppLayout() {
             }
           />
 
-          {/* Protected Routes */}
+          {/* Protected Routes - Module 2 Dashboard */}
           <Route
             path="/dashboard"
             element={
               <ProtectedRoute>
-                <DashboardPreview />
+                <Dashboard />
               </ProtectedRoute>
             }
           />
