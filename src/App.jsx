@@ -14,6 +14,7 @@ import CompanyDetails from './pages/CompanyDetails';
 import JobManagement from './pages/JobManagement';
 import JobDetails from './pages/JobDetails';
 import JobSearch from './pages/JobSearch';
+import CandidateProfile from './pages/CandidateProfile';
 
 function AppLayout() {
   const location = useLocation();
@@ -119,6 +120,16 @@ function AppLayout() {
             element={
               <ProtectedRoute>
                 <JobDetails />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Protected Routes - Module 6: Candidate Profile */}
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <CandidateProfile />
               </ProtectedRoute>
             }
           />
