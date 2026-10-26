@@ -11,6 +11,8 @@ import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import CompanyList from './pages/CompanyList';
 import CompanyDetails from './pages/CompanyDetails';
+import JobManagement from './pages/JobManagement';
+import JobDetails from './pages/JobDetails';
 
 function AppLayout() {
   const location = useLocation();
@@ -77,6 +79,24 @@ function AppLayout() {
             element={
               <ProtectedRoute>
                 <CompanyDetails />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Protected Routes - Module 4: Job Posting */}
+          <Route
+            path="/jobs"
+            element={
+              <ProtectedRoute>
+                <JobManagement />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/jobs/:id"
+            element={
+              <ProtectedRoute>
+                <JobDetails />
               </ProtectedRoute>
             }
           />
