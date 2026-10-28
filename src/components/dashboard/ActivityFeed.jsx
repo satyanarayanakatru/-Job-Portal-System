@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   CheckCircle2, 
   Clock, 
@@ -11,73 +11,27 @@ import {
   Sparkles
 } from 'lucide-react';
 import EmptyState from '../common/EmptyState';
-
-const INITIAL_ACTIVITIES = [
-  {
-    id: 1,
-    category: 'applications',
-    title: 'Senior Frontend Engineer Application',
-    entity: 'Stripe Horizon',
-    user: 'Sarah Jenkins',
-    action: 'submitted an application with resume',
-    status: 'In Review',
-    statusColor: 'bg-amber-50 text-amber-700 border-amber-200',
-    time: '12m ago',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80',
-  },
-  {
-    id: 2,
-    category: 'jobs',
-    title: 'New Position Published',
-    entity: 'TechCorp Solutions',
-    user: 'Alex Morgan',
-    action: 'published "Staff Cloud Architect ($160k - $210k)"',
-    status: 'Active',
-    statusColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    time: '45m ago',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80',
-  },
-  {
-    id: 3,
-    category: 'interviews',
-    title: 'Technical Round 1 Scheduled',
-    entity: 'NexaCloud Data',
-    user: 'David Kim',
-    action: 'confirmed video interview for Oct 29, 2:00 PM',
-    status: 'Scheduled',
-    statusColor: 'bg-purple-50 text-purple-700 border-purple-200',
-    time: '2h ago',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80',
-  },
-  {
-    id: 4,
-    category: 'applications',
-    title: 'Applicant Shortlisted',
-    entity: 'Apex FinTech',
-    user: 'Elena Rostova',
-    action: 'shortlisted candidate Marcus Vance for UX Lead',
-    status: 'Shortlisted',
-    statusColor: 'bg-teal-50 text-teal-700 border-teal-200',
-    time: '4h ago',
-    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80',
-  },
-  {
-    id: 5,
-    category: 'jobs',
-    title: 'Job Posting Closed',
-    entity: 'Quantum AI Labs',
-    user: 'System Bot',
-    action: 'closed "Junior React Intern" after 250 applications',
-    status: 'Closed',
-    statusColor: 'bg-slate-100 text-slate-700 border-slate-200',
-    time: '6h ago',
-    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=80',
-  },
-];
+import { analyticsService } from '../../services/analyticsService';
 
 export default function ActivityFeed({ role = 'candidate' }) {
   const [filter, setFilter] = useState('all');
-  const [activities, setActivities] = useState(INITIAL_ACTIVITIES);
+  const [activities, setActivities] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchActivities = async () => {
+      try {
+        const dynamicList = await analyticsService.getDynamicActivities(role);
+        setActivities(dynamicList);
+      } catch (err) {
+        console.error('Failed to load dynamic activities:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchActivities();
+  }, [role]);
 
   const filtered = activities.filter((item) => {
     if (filter === 'all') return true;
@@ -90,12 +44,17 @@ export default function ActivityFeed({ role = 'candidate' }) {
       {/* Header with Filter Tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div>
-          <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-            <Clock className="w-4 h-4 text-indigo-600" />
-            <span>Recent System & Team Activities</span>
-          </h3>
+          <div className="flex items-center space-x-2">
+            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+              <Clock className="w-4 h-4 text-indigo-600" />
+              <span>Recent System & Team Activities</span>
+            </h3>
+            <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">
+              Live Stream
+            </span>
+          </div>
           <p className="text-xs text-slate-500 mt-0.5">
-            Real-time feed of applications, job publications, and interview milestones
+            Real-time feed generated directly from submitted applications and job postings
           </p>
         </div>
 
@@ -134,7 +93,11 @@ export default function ActivityFeed({ role = 'candidate' }) {
                 <img
                   src={item.avatar}
                   alt={item.user}
-                  className="w-10 h-10 rounded-xl object-cover ring-2 ring-slate-100 shrink-0"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(item.entity || 'Job')}`;
+                  }}
+                  className="w-10 h-10 rounded-xl object-cover ring-2 ring-slate-100 shrink-0 bg-slate-100"
                 />
                 <div className="min-w-0">
                   <div className="flex items-center space-x-2">

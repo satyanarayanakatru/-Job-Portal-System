@@ -87,7 +87,7 @@ export default function Register() {
 
       {/* Top Bar (No Navbar - matches Login Screen) */}
       <header className="max-w-6xl w-full mx-auto flex items-center justify-between z-20 shrink-0 h-10">
-        <Link to="/" className="flex items-center space-x-2 group">
+        <Link to="/login" className="flex items-center space-x-2 group">
           <div className="h-8 w-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center shadow-md shadow-indigo-500/20 group-hover:scale-105 transition">
             <Briefcase className="h-4 w-4" />
           </div>
@@ -98,11 +98,11 @@ export default function Register() {
         </Link>
 
         <Link
-          to="/"
+          to="/login"
           className="inline-flex items-center space-x-1.5 text-xs font-semibold text-slate-600 hover:text-indigo-600 bg-white/90 hover:bg-white px-3 py-1.5 rounded-full border border-slate-200/80 transition shadow-2xs"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Back to Home</span>
+          <span>Back to Login</span>
         </Link>
       </header>
 

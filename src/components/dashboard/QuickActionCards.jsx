@@ -16,10 +16,19 @@ import QuickActionModal from './QuickActionModal';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
-export default function QuickActionCards({ role = 'candidate' }) {
+export default function QuickActionCards({ role = 'candidate', metrics = {} }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalActionType, setModalActionType] = useState('post-job');
   const navigate = useNavigate();
+
+  // Dynamic values extracted safely from live metrics
+  const totalJobs = metrics.totalJobs ?? 6;
+  const activePostings = metrics.activePostings ?? metrics.activeOpenings ?? 5;
+  const totalCandidates = metrics.totalCandidates ?? 10;
+  const totalApplications = metrics.totalApplications ?? metrics.myApplications ?? 4;
+  const savedJobs = metrics.savedJobs ?? metrics.savedTalent ?? 3;
+  const totalCompanies = metrics.totalCompanies ?? 16;
+  const interviews = metrics.interviews ?? 1;
 
   const handleAction = (action) => {
     if (action === 'post-job') {
@@ -29,15 +38,16 @@ export default function QuickActionCards({ role = 'candidate' }) {
       setModalActionType('upload-resume');
       setModalOpen(true);
     } else if (action === 'browse-jobs') {
-      toast.info('Navigating to Job Search (Module 5)...');
-      navigate('/jobs');
+      toast.info(`Opening Job Search with ${activePostings} verified active listings...`);
+      navigate('/jobs/search');
     } else if (action === 'saved-jobs') {
-      toast.info('Navigating to Saved Jobs (Module 7)...');
+      toast.info('Navigating to Applications & Saved Jobs...');
       navigate('/applications');
     } else if (action === 'candidate-search') {
-      toast.info('Candidate Directory loaded with 12,850 profiles.');
+      setModalActionType('candidate-search');
+      setModalOpen(true);
     } else if (action === 'analytics-report') {
-      toast.info('Opening detailed Reports & Analytics (Module 8)...');
+      toast.info('Opening detailed Reports & Analytics...');
       navigate('/reports');
     }
   };
@@ -46,10 +56,10 @@ export default function QuickActionCards({ role = 'candidate' }) {
     {
       id: 'search',
       title: 'Explore Tech Jobs',
-      desc: 'Browse 1,420+ active verified engineering & design roles',
+      desc: `Browse ${activePostings} active verified engineering & design roles`,
       icon: Search,
       action: 'browse-jobs',
-      btnText: 'Search Roles',
+      btnText: `Search Roles (${activePostings})`,
       gradient: 'from-blue-600 to-indigo-600',
     },
     {
@@ -64,19 +74,19 @@ export default function QuickActionCards({ role = 'candidate' }) {
     {
       id: 'saved',
       title: 'Saved Opportunities',
-      desc: 'View bookmarked job openings and track deadlines',
+      desc: `View ${savedJobs} bookmarked job openings and track deadlines`,
       icon: BookmarkCheck,
       action: 'saved-jobs',
-      btnText: 'View Saved (18)',
+      btnText: `View Saved (${savedJobs})`,
       gradient: 'from-violet-600 to-purple-600',
     },
     {
       id: 'track',
       title: 'Track Applications',
-      desc: 'Check live review status, interview calls, and offers',
+      desc: `Monitor ${totalApplications} live applications and ${interviews} interview invitations`,
       icon: FileText,
       action: 'saved-jobs',
-      btnText: 'Track Status',
+      btnText: `Track Status (${totalApplications})`,
       gradient: 'from-emerald-600 to-teal-600',
     },
   ];
@@ -85,7 +95,7 @@ export default function QuickActionCards({ role = 'candidate' }) {
     {
       id: 'post',
       title: 'Post a New Job',
-      desc: 'Publish a new opening with compensation & skill filters',
+      desc: `Publish a new opening to your ${totalJobs} listings (${activePostings} live)`,
       icon: Plus,
       action: 'post-job',
       btnText: 'Create Job Post',
@@ -94,25 +104,25 @@ export default function QuickActionCards({ role = 'candidate' }) {
     {
       id: 'candidates',
       title: 'Candidate Directory',
-      desc: 'Filter 12,850+ pre-vetted engineers by tech stack',
+      desc: `Filter ${totalCandidates} pre-vetted engineers by tech stack`,
       icon: UserCheck,
       action: 'candidate-search',
-      btnText: 'Search Talent',
+      btnText: `Search Talent (${totalCandidates})`,
       gradient: 'from-indigo-600 to-blue-600',
     },
     {
       id: 'applications',
       title: 'Review Applications',
-      desc: 'Screen 184 incoming applicants & schedule interviews',
+      desc: `Screen ${totalApplications} incoming candidate submissions & interview calls`,
       icon: FileText,
       action: 'saved-jobs',
-      btnText: 'Review Queue',
+      btnText: `Review Queue (${totalApplications})`,
       gradient: 'from-sky-600 to-indigo-600',
     },
     {
       id: 'reports',
       title: 'Hiring Analytics',
-      desc: 'Check candidate conversion metrics and time-to-hire',
+      desc: `Check candidate conversion metrics across ${totalCompanies} partner companies`,
       icon: TrendingUp,
       action: 'analytics-report',
       btnText: 'View Reports',

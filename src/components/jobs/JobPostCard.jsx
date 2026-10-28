@@ -16,7 +16,7 @@ import {
   ToggleRight
 } from 'lucide-react';
 
-export default function JobPostCard({ job, onEdit, onDelete, onToggleStatus }) {
+export default function JobPostCard({ job, onEdit, onDelete, onToggleStatus, isRecruiter = true }) {
   const isOpen = job.status === 'Open';
 
   // Check if deadline is approaching
@@ -55,23 +55,25 @@ export default function JobPostCard({ job, onEdit, onDelete, onToggleStatus }) {
             </div>
           </div>
 
-          {/* Quick Edit & Delete Icons */}
-          <div className="flex items-center space-x-1 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
-            <button
-              onClick={() => onEdit(job)}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition"
-              title="Edit Job"
-            >
-              <Edit3 className="w-3.5 h-3.5" />
-            </button>
-            <button
-              onClick={() => onDelete(job)}
-              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
-              title="Delete Job"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
-          </div>
+          {/* Quick Edit & Delete Icons (Recruiter only) */}
+          {isRecruiter && (
+            <div className="flex items-center space-x-1 shrink-0 opacity-80 group-hover:opacity-100 transition-opacity">
+              <button
+                onClick={() => onEdit(job)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition"
+                title="Edit Job"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+              </button>
+              <button
+                onClick={() => onDelete(job)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                title="Delete Job"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Badges Row: Employment Type, Experience, Location */}
@@ -131,20 +133,30 @@ export default function JobPostCard({ job, onEdit, onDelete, onToggleStatus }) {
 
       {/* Footer Bar: Status Toggle & Details Link */}
       <div className="px-5 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-        {/* Status Toggle Button */}
-        <button
-          type="button"
-          onClick={() => onToggleStatus(job.id)}
-          className={`inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-xl text-xs font-bold transition ${
-            isOpen
-              ? 'bg-emerald-100 text-emerald-800 border border-emerald-200 hover:bg-emerald-200/70'
-              : 'bg-slate-200 text-slate-700 border border-slate-300 hover:bg-slate-300'
-          }`}
-          title="Click to toggle status between Open and Closed"
-        >
-          {isOpen ? <ToggleRight className="w-4 h-4 text-emerald-600" /> : <ToggleLeft className="w-4 h-4 text-slate-500" />}
-          <span>{job.status}</span>
-        </button>
+        {/* Status indicator: toggle for recruiter, badge for candidate */}
+        {isRecruiter ? (
+          <button
+            type="button"
+            onClick={() => onToggleStatus(job.id)}
+            className={`inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-xl text-xs font-bold transition ${
+              isOpen
+                ? 'bg-emerald-100 text-emerald-800 border border-emerald-200 hover:bg-emerald-200/70'
+                : 'bg-slate-200 text-slate-700 border border-slate-300 hover:bg-slate-300'
+            }`}
+            title="Click to toggle status between Open and Closed"
+          >
+            {isOpen ? <ToggleRight className="w-4 h-4 text-emerald-600" /> : <ToggleLeft className="w-4 h-4 text-slate-500" />}
+            <span>{job.status}</span>
+          </button>
+        ) : (
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+              isOpen ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-200 text-slate-700 border-slate-300'
+            }`}
+          >
+            {job.status}
+          </span>
+        )}
 
         <Link
           to={`/jobs/${job.id}`}

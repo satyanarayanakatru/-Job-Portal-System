@@ -4,7 +4,9 @@ import DashboardLayout from '../components/layout/DashboardLayout';
 import JobPostModal from '../components/jobs/JobPostModal';
 import JobDeleteModal from '../components/jobs/JobDeleteModal';
 import SkeletonLoader from '../components/common/SkeletonLoader';
+import QuickApplyModal from '../components/search/QuickApplyModal';
 import { jobService } from '../services/jobService';
+import { applicationService } from '../services/applicationService';
 import { useAuth } from '../context/AuthContext';
 import { 
   Briefcase, 
@@ -31,6 +33,7 @@ export default function JobDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const isRecruiter = user?.role === 'recruiter';
 
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -38,6 +41,7 @@ export default function JobDetails() {
   // Modals state
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [applyModalOpen, setApplyModalOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
@@ -95,10 +99,11 @@ export default function JobDetails() {
   };
 
   const handleApply = () => {
-    toast.success(`Application submitted for "${job.title}"! Hiring team notified.`);
+    setApplyModalOpen(true);
   };
 
   const handleSaveJob = () => {
+    applicationService.saveJob(job);
     toast.success(`"${job.title}" added to your Saved Jobs!`);
   };
 
@@ -123,42 +128,64 @@ export default function JobDetails() {
         {/* Top Back Nav & Quick Actions */}
         <div className="flex items-center justify-between">
           <Link
-            to="/jobs"
+            to={isRecruiter ? '/jobs' : '/jobs/search'}
             className="inline-flex items-center space-x-1.5 text-xs font-bold text-slate-600 hover:text-indigo-600 transition"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Job Postings</span>
+            <span>{isRecruiter ? 'Back to Manage Postings' : 'Back to Job Search'}</span>
           </Link>
 
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={handleToggleStatus}
-              className={`inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition ${
-                isOpen
-                  ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                  : 'bg-slate-200 text-slate-700 border border-slate-300'
-              }`}
-            >
-              {isOpen ? <ToggleRight className="w-4 h-4 text-emerald-600" /> : <ToggleLeft className="w-4 h-4" />}
-              <span>{job.status}</span>
-            </button>
+          {isRecruiter ? (
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={handleToggleStatus}
+                className={`inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition ${
+                  isOpen
+                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                    : 'bg-slate-200 text-slate-700 border border-slate-300'
+                }`}
+              >
+                {isOpen ? <ToggleRight className="w-4 h-4 text-emerald-600" /> : <ToggleLeft className="w-4 h-4" />}
+                <span>{job.status}</span>
+              </button>
 
-            <button
-              onClick={() => setEditModalOpen(true)}
-              className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 shadow-2xs transition"
-            >
-              <Edit3 className="w-3.5 h-3.5 text-indigo-600" />
-              <span>Edit Job</span>
-            </button>
+              <button
+                onClick={() => setEditModalOpen(true)}
+                className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 shadow-2xs transition"
+              >
+                <Edit3 className="w-3.5 h-3.5 text-indigo-600" />
+                <span>Edit Job</span>
+              </button>
 
-            <button
-              onClick={() => setDeleteModalOpen(true)}
-              className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-xs font-semibold text-rose-700 transition"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              <span>Delete</span>
-            </button>
-          </div>
+              <button
+                onClick={() => setDeleteModalOpen(true)}
+                className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-xs font-semibold text-rose-700 transition"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete</span>
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center space-x-2">
+              <button
+                type="button"
+                onClick={handleSaveJob}
+                className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 shadow-2xs transition"
+              >
+                <Bookmark className="w-3.5 h-3.5 text-amber-500" />
+                <span>Save Job</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleApply}
+                disabled={!isOpen}
+                className="inline-flex items-center space-x-1.5 px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>{isOpen ? 'Quick Apply' : 'Position Closed'}</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Hero Card */}
@@ -357,7 +384,14 @@ export default function JobDetails() {
         </div>
       </div>
 
-      {/* Edit Modal */}
+      {/* Quick Apply Modal for Candidates */}
+      <QuickApplyModal
+        isOpen={applyModalOpen}
+        onClose={() => setApplyModalOpen(false)}
+        job={job}
+      />
+
+      {/* Edit Modal (Recruiter only) */}
       <JobPostModal
         isOpen={editModalOpen}
         onClose={() => setEditModalOpen(false)}

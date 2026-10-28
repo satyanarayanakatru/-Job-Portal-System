@@ -19,50 +19,71 @@ import {
   ShieldCheck,
   MapPin,
   Clock,
-  Layers
+  Layers,
+  RefreshCw
 } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { analyticsService } from '../services/analyticsService';
 
 export default function Dashboard() {
   const { user } = useAuth();
   const activeRole = user?.role || 'candidate';
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [metrics, setMetrics] = useState({
+    totalCompanies: 0,
+    totalJobs: 0,
+    activePostings: 0,
+    activeOpenings: 0,
+    totalCandidates: 0,
+    myApplications: 0,
+    totalApplications: 0,
+    savedJobs: 0,
+    savedTalent: 0,
+  });
 
-  // Initial load simulation to demonstrate skeleton loader
-  useEffect(() => {
-    const timer = setTimeout(() => {
+  // Load live dynamic data from storage
+  const loadDynamicData = async () => {
+    try {
+      const data = await analyticsService.getDashboardMetrics(activeRole);
+      setMetrics(data);
+    } catch (err) {
+      console.error('Failed to load dashboard metrics:', err);
+    } finally {
       setLoading(false);
-    }, 600);
-    return () => clearTimeout(timer);
-  }, []);
+    }
+  };
+
+  useEffect(() => {
+    loadDynamicData();
+  }, [activeRole]);
 
   // Refresh handler
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await new Promise((r) => setTimeout(r, 700));
+    await loadDynamicData();
+    await new Promise((r) => setTimeout(r, 450));
     setIsRefreshing(false);
     toast.success('Dashboard metrics refreshed with live market data!');
   };
 
-  // Metrics Data matching Module 2 requirements:
-  // Total Companies, Total Jobs, Active Job Postings, Total Candidates, Total Applications, Saved Jobs
+  // Dynamic Metrics matching Module 2 requirements:
   const candidateStats = [
-    { title: 'Total Companies', value: 850, change: '+12.4%', icon: Building2, colorScheme: 'indigo' },
-    { title: 'Total Jobs', value: 1420, change: '+18.2%', icon: Briefcase, colorScheme: 'purple' },
-    { title: 'Active Postings', value: 842, change: '+9.5%', icon: CheckCircle2, colorScheme: 'emerald' },
-    { title: 'Total Candidates', value: 12850, change: '+24.1%', icon: Users, colorScheme: 'sky' },
-    { title: 'My Applications', value: 7, change: '+2 this wk', icon: FileText, colorScheme: 'rose' },
-    { title: 'Saved Jobs', value: 18, change: '+3 closing', icon: BookmarkCheck, colorScheme: 'amber' },
+    { title: 'Total Companies', value: metrics.totalCompanies, change: 'Verified Directory', icon: Building2, colorScheme: 'indigo' },
+    { title: 'Total Jobs', value: metrics.totalJobs, change: `${metrics.activePostings} Active`, icon: Briefcase, colorScheme: 'purple' },
+    { title: 'Active Postings', value: metrics.activePostings, change: 'Open for apply', icon: CheckCircle2, colorScheme: 'emerald' },
+    { title: 'Total Candidates', value: metrics.totalCandidates, change: 'Global Network', icon: Users, colorScheme: 'sky' },
+    { title: 'My Applications', value: metrics.myApplications, change: 'Tracked Pipeline', icon: FileText, colorScheme: 'rose' },
+    { title: 'Saved Jobs', value: metrics.savedJobs, change: 'Bookmarked', icon: BookmarkCheck, colorScheme: 'amber' },
   ];
 
   const recruiterStats = [
-    { title: 'Total Companies', value: 850, change: '+12.4%', icon: Building2, colorScheme: 'indigo' },
-    { title: 'Total Jobs', value: 1420, change: '+18.2%', icon: Briefcase, colorScheme: 'purple' },
-    { title: 'Active Openings', value: 12, change: '+2 posted', icon: CheckCircle2, colorScheme: 'emerald' },
-    { title: 'Total Candidates', value: 12850, change: '+24.1%', icon: Users, colorScheme: 'sky' },
-    { title: 'Total Applications', value: 184, change: '+28 unreviewed', icon: FileText, colorScheme: 'purple' },
-    { title: 'Saved Talent', value: 36, change: '+8 shortlisted', icon: BookmarkCheck, colorScheme: 'amber' },
+    { title: 'Total Companies', value: metrics.totalCompanies, change: 'Hiring Partners', icon: Building2, colorScheme: 'indigo' },
+    { title: 'Total Jobs', value: metrics.totalJobs, change: 'Across All Sectors', icon: Briefcase, colorScheme: 'purple' },
+    { title: 'Active Openings', value: metrics.activeOpenings, change: 'Live Positions', icon: CheckCircle2, colorScheme: 'emerald' },
+    { title: 'Total Candidates', value: metrics.totalCandidates, change: 'Active Pool', icon: Users, colorScheme: 'sky' },
+    { title: 'Total Applications', value: metrics.totalApplications, change: 'Received Submissions', icon: FileText, colorScheme: 'purple' },
+    { title: 'Saved Talent', value: metrics.savedTalent, change: 'Shortlisted', icon: BookmarkCheck, colorScheme: 'amber' },
   ];
 
   const currentStats = activeRole === 'recruiter' ? recruiterStats : candidateStats;
@@ -86,14 +107,14 @@ export default function Dashboard() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
-                <span>Operational System • Realtime Statistics</span>
+                <span>Operational System • 100% Dynamic Realtime Statistics</span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
                 Welcome back, {user?.name || 'Professional'}!
               </h1>
               <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
                 {activeRole === 'recruiter'
-                  ? `Manage your active job postings at ${user?.company || 'TechCorp Global'}, review candidate resumes, and track recruitment pipeline conversions.`
+                  ? `Manage your active job postings, review candidate resumes, and track recruitment pipeline conversions with real-time analytics.`
                   : 'Track your submitted job applications, explore newly posted tech roles, and monitor status updates from hiring managers in real time.'}
               </p>
             </div>
@@ -109,15 +130,15 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Section 1: Dashboard Statistics Cards (Module 2 Requirement) */}
+        {/* Section 1: Dashboard Statistics Cards (100% Dynamic) */}
         <div>
           <div className="flex items-center justify-between mb-3.5">
             <h2 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
               <Layers className="w-4 h-4 text-indigo-600" />
-              <span>Core Platform Statistics</span>
+              <span>Core Platform Live Statistics</span>
             </h2>
             <span className="text-xs font-medium text-slate-500">
-              Live indicators across verified database
+              Synced with local storage repository
             </span>
           </div>
 
@@ -143,17 +164,17 @@ export default function Dashboard() {
         {loading ? (
           <SkeletonLoader count={1} />
         ) : (
-          <QuickActionCards role={activeRole} />
+          <QuickActionCards role={activeRole} metrics={metrics} />
         )}
 
-        {/* Section 3: Visual Analytics & Charts */}
+        {/* Section 3: Visual Analytics & Charts (100% Dynamic) */}
         {loading ? (
           <SkeletonLoader type="chart" />
         ) : (
-          <AnalyticsChart />
+          <AnalyticsChart role={activeRole} />
         )}
 
-        {/* Section 4: Recent Activities Feed */}
+        {/* Section 4: Recent Activities Feed (100% Dynamic) */}
         {loading ? (
           <SkeletonLoader type="list" count={4} />
         ) : (

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { 
   BookmarkCheck, 
   Briefcase, 
@@ -15,7 +16,8 @@ import {
   Sparkles,
   ArrowUpDown,
   PlusCircle,
-  FileText
+  FileText,
+  UserCheck
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import DashboardLayout from '../components/layout/DashboardLayout';
@@ -29,6 +31,9 @@ import SkeletonLoader from '../components/common/SkeletonLoader';
 import { applicationService } from '../services/applicationService';
 
 export default function ApplicationsHub() {
+  const { user } = useAuth();
+  const isRecruiter = user?.role === 'recruiter';
+
   const [activeTab, setActiveTab] = useState('applications'); // 'applications' | 'saved'
   const [applications, setApplications] = useState([]);
   const [savedJobs, setSavedJobs] = useState([]);
@@ -60,7 +65,22 @@ export default function ApplicationsHub() {
     loadData();
   }, []);
 
-  // Handle Application Withdrawal
+  // Recruiter handler: Advance candidate hiring stage
+  const handleUpdateStage = (appId, newStatus) => {
+    let notes = undefined;
+    if (newStatus === 'Interview Scheduled') {
+      notes = 'Recruiter confirmed technical video interview for Thursday at 2:00 PM EST.';
+    } else if (newStatus === 'Offer Extended') {
+      notes = 'Formal written offer extended: competitive base salary and equity package.';
+    } else if (newStatus === 'Under Review') {
+      notes = 'Application screened by talent acquisition team and forwarded to hiring manager.';
+    }
+    const updated = applicationService.updateApplicationStage(appId, newStatus, { notes });
+    setApplications(updated);
+    toast.success(`Candidate hiring stage updated to "${newStatus}"!`);
+  };
+
+  // Handle Application Withdrawal (Candidate)
   const handleConfirmWithdraw = (appId, reason) => {
     const updated = applicationService.withdrawApplication(appId, reason);
     setApplications(updated);
@@ -125,25 +145,29 @@ export default function ApplicationsHub() {
           <div>
             <div className="flex items-center space-x-2">
               <span className="text-xs font-bold uppercase tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg">
-                Hiring Pipeline
+                {isRecruiter ? 'Recruiter ATS' : 'Career Tracking'}
               </span>
-              <span className="text-xs text-slate-400 font-medium">• Applications & Bookmarks</span>
+              <span className="text-xs text-slate-400 font-medium">
+                • {isRecruiter ? 'Talent Acquisition & Stage Advancement' : 'Applications & Bookmarks'}
+              </span>
             </div>
             <h1 className="text-2xl font-extrabold text-slate-900 mt-1">
-              Applications & Saved Jobs
+              {isRecruiter ? 'Candidate Applications & ATS Pipeline' : 'Applications & Saved Jobs'}
             </h1>
             <p className="text-xs text-slate-500 mt-0.5">
-              Monitor active hiring stages, interview invitations, offer packages, and bookmarked roles.
+              {isRecruiter
+                ? 'Review candidate resumes, screen incoming talent submissions, and advance candidates across hiring stages.'
+                : 'Monitor active hiring stages, interview invitations, offer packages, and bookmarked roles.'}
             </p>
           </div>
 
           <div className="flex items-center space-x-2.5">
             <Link
-              to="/jobs"
+              to={isRecruiter ? '/jobs' : '/jobs/search'}
               className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-md shadow-indigo-600/20 transition flex items-center gap-1.5"
             >
-              <Search className="w-4 h-4" />
-              <span>Explore More Jobs</span>
+              {isRecruiter ? <Briefcase className="w-4 h-4" /> : <Search className="w-4 h-4" />}
+              <span>{isRecruiter ? 'Manage Job Postings' : 'Explore More Jobs'}</span>
             </Link>
           </div>
         </div>
@@ -215,7 +239,7 @@ export default function ApplicationsHub() {
               }`}
             >
               <FileText className="w-3.5 h-3.5" />
-              <span>My Applications</span>
+              <span>{isRecruiter ? 'Candidate Submissions' : 'My Applications'}</span>
               <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
                 activeTab === 'applications' ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-200 text-slate-600'
               }`}>
@@ -232,7 +256,7 @@ export default function ApplicationsHub() {
               }`}
             >
               <BookmarkCheck className="w-3.5 h-3.5" />
-              <span>Saved Jobs</span>
+              <span>{isRecruiter ? 'Shortlisted Talent' : 'Saved Jobs'}</span>
               <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
                 activeTab === 'saved' ? 'bg-indigo-50 text-indigo-600' : 'bg-slate-200 text-slate-600'
               }`}>
@@ -302,6 +326,8 @@ export default function ApplicationsHub() {
                   onViewDetails={(a) => setSelectedDetailsApp(a)}
                   onWithdraw={(a) => setSelectedWithdrawApp(a)}
                   onDelete={handleDeleteApplication}
+                  isRecruiter={isRecruiter}
+                  onUpdateStage={handleUpdateStage}
                 />
               ))}
             </div>

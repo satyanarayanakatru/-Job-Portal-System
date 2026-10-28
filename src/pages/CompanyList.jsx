@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useAuth } from '../context/AuthContext';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import CompanyCard from '../components/companies/CompanyCard';
 import CompanyFilters from '../components/companies/CompanyFilters';
@@ -27,6 +28,9 @@ import { toast } from 'react-toastify';
 const ITEMS_PER_PAGE = 6;
 
 export default function CompanyList() {
+  const { user } = useAuth();
+  const isRecruiter = user?.role === 'recruiter';
+
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -207,15 +211,17 @@ export default function CompanyList() {
             </p>
           </div>
 
-          <div className="flex items-center space-x-3 shrink-0">
-            <button
-              onClick={handleOpenAddModal}
-              className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-600/20 transition flex items-center gap-1.5"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add New Company</span>
-            </button>
-          </div>
+          {isRecruiter && (
+            <div className="flex items-center space-x-3 shrink-0">
+              <button
+                onClick={handleOpenAddModal}
+                className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-600/20 transition flex items-center gap-1.5"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add New Company</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Highlight Metrics */}

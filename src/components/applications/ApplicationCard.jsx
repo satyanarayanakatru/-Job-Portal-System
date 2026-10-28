@@ -60,7 +60,9 @@ export default function ApplicationCard({
   application, 
   onViewDetails, 
   onWithdraw, 
-  onDelete 
+  onDelete,
+  isRecruiter = false,
+  onUpdateStage,
 }) {
   const statusInfo = STATUS_CONFIG[application.status] || STATUS_CONFIG['Submitted'];
   const currentStep = application.statusStep || statusInfo.step;
@@ -250,18 +252,36 @@ export default function ApplicationCard({
             className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition"
           >
             <Eye className="w-3.5 h-3.5" />
-            <span>View Timeline</span>
+            <span>{isRecruiter ? 'Review Application' : 'View Timeline'}</span>
           </button>
 
-          {/* Withdraw Application */}
-          {!isWithdrawn && !isOffer && (
-            <button
-              onClick={() => onWithdraw(application)}
-              className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-xl border border-slate-200 hover:border-rose-200 text-slate-600 hover:text-rose-600 hover:bg-rose-50 text-xs font-medium transition"
-            >
-              <XCircle className="w-3.5 h-3.5" />
-              <span>Withdraw</span>
-            </button>
+          {/* Recruiter Stage Advance Selector */}
+          {isRecruiter ? (
+            <div className="flex items-center space-x-1.5">
+              <span className="text-[10px] font-bold text-slate-400 uppercase hidden sm:inline">Hiring Stage:</span>
+              <select
+                value={application.status}
+                onChange={(e) => onUpdateStage && onUpdateStage(application.id, e.target.value)}
+                className="px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+              >
+                <option value="Submitted">1. Submitted</option>
+                <option value="Under Review">2. Under Review</option>
+                <option value="Interview Scheduled">3. Interview Scheduled</option>
+                <option value="Offer Extended">4. Offer Extended</option>
+                <option value="Rejected">Rejected</option>
+              </select>
+            </div>
+          ) : (
+            /* Candidate Withdraw Action */
+            !isWithdrawn && !isOffer && (
+              <button
+                onClick={() => onWithdraw(application)}
+                className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-xl border border-slate-200 hover:border-rose-200 text-slate-600 hover:text-rose-600 hover:bg-rose-50 text-xs font-medium transition"
+              >
+                <XCircle className="w-3.5 h-3.5" />
+                <span>Withdraw</span>
+              </button>
+            )
           )}
         </div>
 

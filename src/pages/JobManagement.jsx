@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import JobPostCard from '../components/jobs/JobPostCard';
 import JobPostModal from '../components/jobs/JobPostModal';
@@ -27,6 +28,9 @@ import { toast } from 'react-toastify';
 const ITEMS_PER_PAGE = 6;
 
 export default function JobManagement() {
+  const { user } = useAuth();
+  const isRecruiter = user?.role === 'recruiter';
+
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -230,13 +234,23 @@ export default function JobManagement() {
           </div>
 
           <div className="flex items-center space-x-3 shrink-0">
-            <button
-              onClick={handleOpenAdd}
-              className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-600/20 transition flex items-center gap-1.5"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Create Job Posting</span>
-            </button>
+            {isRecruiter ? (
+              <button
+                onClick={handleOpenAdd}
+                className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-600/20 transition flex items-center gap-1.5"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Create Job Posting</span>
+              </button>
+            ) : (
+              <Link
+                to="/jobs/search"
+                className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-600/20 transition flex items-center gap-1.5"
+              >
+                <Search className="w-4 h-4" />
+                <span>Open Search Engine</span>
+              </Link>
+            )}
           </div>
         </div>
 
@@ -375,6 +389,7 @@ export default function JobManagement() {
                   onEdit={handleOpenEdit}
                   onDelete={handleOpenDelete}
                   onToggleStatus={handleToggleStatus}
+                  isRecruiter={isRecruiter}
                 />
               ))}
             </div>

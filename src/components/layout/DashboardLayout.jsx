@@ -36,14 +36,23 @@ export default function DashboardLayout({ children, onRefresh, isRefreshing }) {
 
   const activeRole = user?.role || 'candidate';
 
-  const navItems = [
+  const candidateNavItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-    { name: 'Companies', path: '/companies', icon: Building2 },
-    { name: 'Job Postings & Search', path: '/jobs', icon: Search },
-    { name: 'Applications & Saved', path: '/applications', icon: BookmarkCheck },
+    { name: 'Explore Jobs', path: '/jobs/search', icon: Search },
+    { name: 'My Applications', path: '/applications', icon: BookmarkCheck },
     { name: 'Candidate Profile', path: '/profile', icon: UserCircle },
+    { name: 'Companies Directory', path: '/companies', icon: Building2 },
+  ];
+
+  const recruiterNavItems = [
+    { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
+    { name: 'Manage Job Postings', path: '/jobs', icon: Briefcase },
+    { name: 'Candidate Review (ATS)', path: '/applications', icon: BookmarkCheck },
+    { name: 'Hiring Partners', path: '/companies', icon: Building2 },
     { name: 'Reports & Analytics', path: '/reports', icon: BarChart3 },
   ];
+
+  const navItems = activeRole === 'recruiter' ? recruiterNavItems : candidateNavItems;
 
   const notifications = [
     { id: 1, title: 'Application Update', desc: 'TechCorp reviewed your React.js application', time: '10m ago', unread: true },
@@ -77,7 +86,7 @@ export default function DashboardLayout({ children, onRefresh, isRefreshing }) {
       >
         {/* Top Header & Brand */}
         <div className="p-4 border-b border-slate-800/80 flex items-center justify-between">
-          <Link to="/" className="flex items-center space-x-3 overflow-hidden">
+          <Link to="/dashboard" className="flex items-center space-x-3 overflow-hidden">
             <div className="h-9 w-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center shrink-0 shadow-md shadow-indigo-500/20">
               <Briefcase className="h-5 w-5" />
             </div>

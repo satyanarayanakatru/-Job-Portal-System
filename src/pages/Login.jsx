@@ -100,23 +100,25 @@ export default function Login() {
 
       {/* Top Bar (Compact Header - No Navbar) */}
       <header className="max-w-6xl w-full mx-auto flex items-center justify-between z-20 shrink-0 h-10">
-        <Link to="/" className="flex items-center space-x-2 group">
-          <div className="h-8 w-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center shadow-md shadow-indigo-500/20 group-hover:scale-105 transition">
+        <div className="flex items-center space-x-2">
+          <div className="h-8 w-8 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 text-white flex items-center justify-center shadow-md shadow-indigo-500/20">
             <Briefcase className="h-4 w-4" />
           </div>
           <span className="font-extrabold text-base text-slate-900 tracking-tight flex items-center gap-1">
             JobSphere
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
           </span>
-        </Link>
+        </div>
 
-        <Link
-          to="/"
-          className="inline-flex items-center space-x-1.5 text-xs font-semibold text-slate-600 hover:text-indigo-600 bg-white/90 hover:bg-white px-3 py-1.5 rounded-full border border-slate-200/80 transition shadow-2xs"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Back to Home</span>
-        </Link>
+        <div className="flex items-center space-x-2">
+          <span className="text-xs text-slate-500 hidden sm:inline">New to JobSphere?</span>
+          <Link
+            to="/register"
+            className="inline-flex items-center space-x-1.5 text-xs font-bold text-indigo-600 hover:text-indigo-700 bg-indigo-50 hover:bg-indigo-100/80 px-3.5 py-1.5 rounded-full border border-indigo-200 transition shadow-2xs"
+          >
+            <span>Create Account</span>
+          </Link>
+        </div>
       </header>
 
       {/* Main Grid Section - Guaranteed Fits in Viewport */}

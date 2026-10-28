@@ -19,7 +19,7 @@ const DEFAULT_APPLICATIONS = [
     resumeName: 'Sarah_Jenkins_Senior_Frontend_Resume.pdf',
     status: 'Under Review',
     statusStep: 2, // 1: Submitted, 2: Under Review, 3: Interview, 4: Offer
-    appliedAt: '2026-10-20T10:15:00Z',
+    appliedAt: '2026-10-05T10:15:00Z',
     notes: 'Application reviewed by Engineering Lead. Pre-screening passed.',
   },
   {
@@ -39,7 +39,7 @@ const DEFAULT_APPLICATIONS = [
     statusStep: 3,
     interviewDate: '2026-10-29T14:00:00Z',
     interviewType: 'System Architecture (Google Meet)',
-    appliedAt: '2026-10-14T08:30:00Z',
+    appliedAt: '2026-09-18T08:30:00Z',
     notes: 'Technical panel with VP of Engineering confirmed for Thursday at 2:00 PM EST.',
   },
   {
@@ -75,7 +75,7 @@ const DEFAULT_APPLICATIONS = [
     resumeName: 'Sarah_Jenkins_Senior_Frontend_Resume.pdf',
     status: 'Offer Extended',
     statusStep: 4,
-    appliedAt: '2026-10-10T11:00:00Z',
+    appliedAt: '2026-08-20T11:00:00Z',
     notes: 'Official written offer package sent via DocuSign: $210,000 base + 0.25% equity.',
   },
 ];
@@ -131,15 +131,37 @@ const DEFAULT_SAVED_JOBS = [
 export const applicationService = {
   // Get all submitted applications
   getApplications: () => {
-    const cached = storage.get(APPS_STORAGE_KEY, null);
-    if (cached && Array.isArray(cached) && cached.length > 0) {
-      return cached;
+    let cached = storage.get(APPS_STORAGE_KEY, null);
+    if (!cached || !Array.isArray(cached) || cached.length === 0) {
+      storage.set(APPS_STORAGE_KEY, DEFAULT_APPLICATIONS);
+      return DEFAULT_APPLICATIONS;
     }
-    storage.set(APPS_STORAGE_KEY, DEFAULT_APPLICATIONS);
-    return DEFAULT_APPLICATIONS;
+
+    // Dynamic migration to ensure realistic monthly timeline if previous default data had identical October timestamps
+    let modified = false;
+    cached = cached.map((app) => {
+      if (app.id === 'app_4' && app.appliedAt === '2026-10-10T11:00:00Z') {
+        modified = true;
+        return { ...app, appliedAt: '2026-08-20T11:00:00Z' };
+      }
+      if (app.id === 'app_2' && app.appliedAt === '2026-10-14T08:30:00Z') {
+        modified = true;
+        return { ...app, appliedAt: '2026-09-18T08:30:00Z' };
+      }
+      if (app.id === 'app_1' && app.appliedAt === '2026-10-20T10:15:00Z') {
+        modified = true;
+        return { ...app, appliedAt: '2026-10-05T10:15:00Z' };
+      }
+      return app;
+    });
+
+    if (modified) {
+      storage.set(APPS_STORAGE_KEY, cached);
+    }
+    return cached;
   },
 
-  // Withdraw Application (UI Only feature)
+  // Withdraw Application (Candidate feature)
   withdrawApplication: (appId, reason = 'Withdrawn by candidate') => {
     const apps = applicationService.getApplications();
     const updated = apps.map((app) => {
@@ -151,6 +173,33 @@ export const applicationService = {
           withdrawnAt: new Date().toISOString(),
           withdrawalReason: reason,
           notes: `Candidate withdrew application: "${reason}"`,
+        };
+      }
+      return app;
+    });
+    storage.set(APPS_STORAGE_KEY, updated);
+    return updated;
+  },
+
+  // Recruiter feature: Advance or update candidate hiring stage
+  updateApplicationStage: (appId, newStatus, extraData = {}) => {
+    const apps = applicationService.getApplications();
+    const stepMap = {
+      'Submitted': 1,
+      'Under Review': 2,
+      'Interview Scheduled': 3,
+      'Offer Extended': 4,
+      'Rejected': 0,
+    };
+
+    const updated = apps.map((app) => {
+      if (String(app.id) === String(appId)) {
+        return {
+          ...app,
+          status: newStatus,
+          statusStep: stepMap[newStatus] || 1,
+          updatedAt: new Date().toISOString(),
+          ...extraData,
         };
       }
       return app;
