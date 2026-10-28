@@ -21,12 +21,11 @@ import {
   Users,
   BookmarkCheck,
   ArrowRight,
-  RefreshCw,
-  SlidersHorizontal
+  RefreshCw
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
-export default function DashboardLayout({ children, onRefresh, isRefreshing, currentRole, onRoleSwitch }) {
+export default function DashboardLayout({ children, onRefresh, isRefreshing }) {
   const { user, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -35,15 +34,15 @@ export default function DashboardLayout({ children, onRefresh, isRefreshing, cur
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
 
-  const activeRole = currentRole || user?.role || 'candidate';
+  const activeRole = user?.role || 'candidate';
 
   const navItems = [
     { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-    { name: 'Companies', path: '/companies', icon: Building2, badge: 'Module 3' },
-    { name: 'Job Postings & Search', path: '/jobs', icon: Search, badge: 'Modules 4-5' },
-    { name: 'Applications & Saved', path: '/applications', icon: BookmarkCheck, badge: 'Module 7' },
-    { name: 'Candidate Profile', path: '/profile', icon: UserCircle, badge: 'Module 6' },
-    { name: 'Reports & Analytics', path: '/reports', icon: BarChart3, badge: 'Module 8' },
+    { name: 'Companies', path: '/companies', icon: Building2 },
+    { name: 'Job Postings & Search', path: '/jobs', icon: Search },
+    { name: 'Applications & Saved', path: '/applications', icon: BookmarkCheck },
+    { name: 'Candidate Profile', path: '/profile', icon: UserCircle },
+    { name: 'Reports & Analytics', path: '/reports', icon: BarChart3 },
   ];
 
   const notifications = [
@@ -60,7 +59,7 @@ export default function DashboardLayout({ children, onRefresh, isRefreshing, cur
   const isActive = (path) => location.pathname === path;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex text-slate-800">
+    <div className="h-screen max-h-screen bg-slate-50 flex overflow-hidden text-slate-800">
       
       {/* Mobile Drawer Backdrop */}
       {mobileMenuOpen && (
@@ -70,9 +69,9 @@ export default function DashboardLayout({ children, onRefresh, isRefreshing, cur
         />
       )}
 
-      {/* Sidebar Navigation */}
+      {/* Sidebar Navigation - Sticky and fixed to left */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 bg-slate-950 text-slate-300 flex flex-col justify-between border-r border-slate-800/80 transition-all duration-300 lg:static ${
+        className={`fixed inset-y-0 left-0 z-50 bg-slate-950 text-slate-300 flex flex-col justify-between border-r border-slate-800/80 transition-all duration-300 lg:static lg:h-screen lg:shrink-0 ${
           mobileMenuOpen ? 'translate-x-0 w-64' : '-translate-x-full lg:translate-x-0'
         } ${sidebarCollapsed ? 'lg:w-20' : 'lg:w-64'}`}
       >
@@ -112,32 +111,6 @@ export default function DashboardLayout({ children, onRefresh, isRefreshing, cur
           </button>
         </div>
 
-        {/* Role Preview Switcher Badge */}
-        {!sidebarCollapsed && (
-          <div className="mx-3 my-2.5 p-2 rounded-xl bg-slate-900 border border-slate-800">
-            <div className="flex items-center justify-between text-[11px] mb-1.5">
-              <span className="text-slate-400 font-medium">Dashboard View:</span>
-              <span
-                className={`font-bold uppercase text-[9px] px-1.5 py-0.2 rounded ${
-                  activeRole === 'recruiter'
-                    ? 'bg-purple-500/20 text-purple-300'
-                    : 'bg-emerald-500/20 text-emerald-300'
-                }`}
-              >
-                {activeRole}
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={onRoleSwitch}
-              className="w-full text-center py-1 px-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-[10px] font-semibold text-slate-200 transition flex items-center justify-center gap-1.5"
-            >
-              <SlidersHorizontal className="w-3 h-3 text-indigo-400" />
-              <span>Switch to {activeRole === 'recruiter' ? 'Candidate' : 'Recruiter'} View</span>
-            </button>
-          </div>
-        )}
-
         {/* Navigation Links */}
         <div className="flex-1 py-4 px-3 space-y-1.5 overflow-y-auto">
           {navItems.map((item) => {
@@ -158,14 +131,7 @@ export default function DashboardLayout({ children, onRefresh, isRefreshing, cur
               >
                 <Icon className={`w-4 h-4 shrink-0 ${current ? 'text-white' : 'text-slate-400 group-hover:text-indigo-400'}`} />
                 {!sidebarCollapsed && (
-                  <div className="flex-1 flex items-center justify-between">
-                    <span>{item.name}</span>
-                    {item.badge && (
-                      <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-slate-800 text-slate-400 group-hover:text-slate-300">
-                        {item.badge}
-                      </span>
-                    )}
-                  </div>
+                  <span className="flex-1 truncate">{item.name}</span>
                 )}
               </Link>
             );
@@ -197,8 +163,8 @@ export default function DashboardLayout({ children, onRefresh, isRefreshing, cur
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+      {/* Main Content Area - Scrolls independently while sidebar stays pinned */}
+      <div className="flex-1 flex flex-col min-w-0 h-screen overflow-y-auto">
         
         {/* Top Header Bar */}
         <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80 px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">

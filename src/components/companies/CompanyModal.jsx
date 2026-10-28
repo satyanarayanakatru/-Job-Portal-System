@@ -98,19 +98,19 @@ export default function CompanyModal({ isOpen, onClose, onSubmit, companyToEdit 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto animate-in fade-in">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
       <div 
-        className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden my-6"
+        className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-100 flex flex-col max-h-[88vh] overflow-hidden my-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        {/* Header - Fixed at Top */}
+        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/70 shrink-0">
           <div className="flex items-center space-x-2.5">
-            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-xs">
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shadow-xs shrink-0">
               <Building2 className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900">
+              <h3 className="text-base font-bold text-slate-900 leading-tight">
                 {isEditing ? `Edit Company: ${companyToEdit.name}` : 'Register New Company'}
               </h3>
               <p className="text-xs text-slate-500">
@@ -122,15 +122,15 @@ export default function CompanyModal({ isOpen, onClose, onSubmit, companyToEdit 
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition"
+            className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Form Body */}
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="p-6 space-y-4 text-xs">
-          
+        {/* Form Body - Scrollable */}
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+          <div className="p-6 space-y-4 text-xs overflow-y-auto flex-1">
           {/* Row 1: Company Name & Industry */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -350,19 +350,21 @@ export default function CompanyModal({ isOpen, onClose, onSubmit, companyToEdit 
             )}
           </div>
 
-          {/* Action Footer */}
-          <div className="pt-3 border-t border-slate-100 flex items-center justify-end space-x-2.5">
+          </div>
+
+          {/* Action Footer - Fixed at Bottom */}
+          <div className="px-6 py-3.5 border-t border-slate-100 bg-slate-50/70 flex items-center justify-end space-x-2.5 shrink-0">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl font-semibold text-slate-600 hover:bg-slate-100 transition"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-200/60 transition"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl font-bold shadow-md shadow-indigo-500/20 transition flex items-center gap-1.5"
+              className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-500/20 transition flex items-center gap-1.5"
             >
               <CheckCircle2 className="w-4 h-4" />
               <span>{isEditing ? 'Save Changes' : 'Create Company'}</span>

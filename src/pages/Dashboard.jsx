@@ -25,9 +25,7 @@ import { toast } from 'react-toastify';
 
 export default function Dashboard() {
   const { user } = useAuth();
-  
-  // Allow toggling between Candidate view and Recruiter view for demonstration
-  const [activeRole, setActiveRole] = useState(user?.role || 'candidate');
+  const activeRole = user?.role || 'candidate';
   const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -39,25 +37,12 @@ export default function Dashboard() {
     return () => clearTimeout(timer);
   }, []);
 
-  // Update activeRole when user changes
-  useEffect(() => {
-    if (user?.role) {
-      setActiveRole(user.role);
-    }
-  }, [user]);
-
   // Refresh handler
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await new Promise((r) => setTimeout(r, 700));
     setIsRefreshing(false);
     toast.success('Dashboard metrics refreshed with live market data!');
-  };
-
-  const handleRoleSwitch = () => {
-    const nextRole = activeRole === 'recruiter' ? 'candidate' : 'recruiter';
-    setActiveRole(nextRole);
-    toast.info(`Switched view to ${nextRole === 'recruiter' ? 'Recruiter / Employer' : 'Job Candidate'}`);
   };
 
   // Metrics Data matching Module 2 requirements:
@@ -86,8 +71,6 @@ export default function Dashboard() {
     <DashboardLayout
       onRefresh={handleRefresh}
       isRefreshing={isRefreshing}
-      currentRole={activeRole}
-      onRoleSwitch={handleRoleSwitch}
     >
       <div className="space-y-6 max-w-7xl mx-auto">
         
@@ -103,7 +86,7 @@ export default function Dashboard() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
-                <span>Module 2: Dashboard Operational • Realtime Statistics</span>
+                <span>Operational System • Realtime Statistics</span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
                 Welcome back, {user?.name || 'Professional'}!
@@ -115,14 +98,13 @@ export default function Dashboard() {
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
-              <button
-                type="button"
-                onClick={handleRoleSwitch}
-                className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-semibold backdrop-blur-md transition flex items-center justify-center gap-2"
-              >
-                <span>Switch View: {activeRole === 'recruiter' ? 'Candidate' : 'Recruiter'}</span>
-              </button>
+            <div className="flex items-center gap-2.5 shrink-0">
+              <div className="px-3.5 py-2 rounded-xl bg-white/10 border border-white/15 backdrop-blur-md flex items-center gap-2 text-xs">
+                <span className={`w-2 h-2 rounded-full ${activeRole === 'recruiter' ? 'bg-purple-400' : 'bg-emerald-400'}`}></span>
+                <span className="font-semibold text-slate-200">
+                  Role: <span className="font-bold text-white capitalize">{activeRole}</span>
+                </span>
+              </div>
             </div>
           </div>
         </div>

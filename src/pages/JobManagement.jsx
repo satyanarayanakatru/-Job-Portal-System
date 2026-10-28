@@ -196,21 +196,21 @@ export default function JobManagement() {
     <DashboardLayout>
       <div className="space-y-6 max-w-7xl mx-auto">
         
-        {/* Navigation Tabs (Module 4 vs Module 5) */}
+        {/* Navigation Tabs */}
         <div className="flex items-center space-x-2 border-b border-slate-200 pb-3">
           <Link
             to="/jobs/search"
             className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition flex items-center gap-1.5"
           >
             <Search className="w-3.5 h-3.5" />
-            <span>Job Search Engine (Module 5)</span>
+            <span>Job Search Engine</span>
           </Link>
           <Link
             to="/jobs"
             className="px-4 py-2 rounded-xl text-xs font-bold bg-indigo-600 text-white shadow-xs transition flex items-center gap-1.5"
           >
             <Briefcase className="w-3.5 h-3.5" />
-            <span>Manage Postings (Module 4)</span>
+            <span>Manage Postings</span>
           </Link>
         </div>
 
@@ -219,7 +219,7 @@ export default function JobManagement() {
           <div className="space-y-2">
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-semibold">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Module 4: Job Posting & Lifecycle Management</span>
+              <span>Job Posting & Lifecycle Management</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
               Job Postings Management

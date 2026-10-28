@@ -15,6 +15,7 @@ import JobManagement from './pages/JobManagement';
 import JobDetails from './pages/JobDetails';
 import JobSearch from './pages/JobSearch';
 import CandidateProfile from './pages/CandidateProfile';
+import ApplicationsHub from './pages/ApplicationsHub';
 
 function AppLayout() {
   const location = useLocation();
@@ -33,9 +34,9 @@ function AppLayout() {
   const shouldShowNavbar = !isAuthPage && !isAppDashboard;
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 font-sans antialiased">
+    <div className={`${isAppDashboard ? 'h-screen max-h-screen overflow-hidden' : 'min-h-screen'} flex flex-col bg-slate-50 text-slate-900 font-sans antialiased`}>
       {shouldShowNavbar && <Navbar />}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-h-0">
         <Routes>
           {/* Public Landing Page */}
           <Route path="/" element={<Home />} />
@@ -130,6 +131,16 @@ function AppLayout() {
             element={
               <ProtectedRoute>
                 <CandidateProfile />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Protected Routes - Module 7: Applications & Saved Jobs */}
+          <Route
+            path="/applications"
+            element={
+              <ProtectedRoute>
+                <ApplicationsHub />
               </ProtectedRoute>
             }
           />

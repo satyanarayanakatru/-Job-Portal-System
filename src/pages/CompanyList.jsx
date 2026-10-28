@@ -197,7 +197,7 @@ export default function CompanyList() {
           <div className="space-y-2">
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-semibold">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Module 3: Third-Party API Enterprise Directory</span>
+              <span>Enterprise Employer Directory</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
               Company Management Directory
