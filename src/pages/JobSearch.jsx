@@ -8,6 +8,7 @@ import SkeletonLoader from '../components/common/SkeletonLoader';
 import EmptyState from '../components/common/EmptyState';
 import { jobService } from '../services/jobService';
 import { storage } from '../utils/localStorage';
+import { useAuth } from '../context/AuthContext';
 import { 
   Search, 
   MapPin, 
@@ -28,6 +29,8 @@ import { toast } from 'react-toastify';
 const ITEMS_PER_PAGE = 6;
 
 export default function JobSearch() {
+  const { user } = useAuth();
+  const isRecruiter = user?.role === 'recruiter';
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -433,6 +436,7 @@ export default function JobSearch() {
         isOpen={applyModalOpen}
         onClose={() => setApplyModalOpen(false)}
         job={selectedJobToApply}
+        onApplied={() => loadJobs()}
       />
     </DashboardLayout>
   );

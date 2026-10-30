@@ -5,6 +5,7 @@ import JobPostModal from '../components/jobs/JobPostModal';
 import JobDeleteModal from '../components/jobs/JobDeleteModal';
 import SkeletonLoader from '../components/common/SkeletonLoader';
 import QuickApplyModal from '../components/search/QuickApplyModal';
+import QuickActionModal from '../components/dashboard/QuickActionModal';
 import { jobService } from '../services/jobService';
 import { applicationService } from '../services/applicationService';
 import { useAuth } from '../context/AuthContext';
@@ -25,7 +26,12 @@ import {
   Bookmark,
   ToggleLeft,
   ToggleRight,
-  ShieldCheck
+  ShieldCheck,
+  UserCheck,
+  Award,
+  FileText,
+  Video,
+  Send
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -37,32 +43,37 @@ export default function JobDetails() {
 
   const [job, setJob] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [applications, setApplications] = useState([]);
 
   // Modals state
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [applyModalOpen, setApplyModalOpen] = useState(false);
+  const [candidateDirectoryOpen, setCandidateDirectoryOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
-    const fetchJob = async () => {
-      setLoading(true);
-      try {
-        const found = await jobService.getJobById(id);
-        if (found) {
-          setJob(found);
-        } else {
-          toast.error('Job posting not found');
-          navigate('/jobs');
-        }
-      } catch (err) {
-        toast.error('Failed to load job details');
-      } finally {
-        setLoading(false);
+  const loadJobData = async () => {
+    setLoading(true);
+    try {
+      const found = await jobService.getJobById(id);
+      if (found) {
+        setJob(found);
+      } else {
+        toast.error('Job posting not found');
+        navigate('/jobs');
       }
-    };
 
-    fetchJob();
+      const allApps = applicationService.getApplications();
+      setApplications(allApps || []);
+    } catch (err) {
+      toast.error('Failed to load job details');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadJobData();
   }, [id, navigate]);
 
   const handleUpdate = async (formData) => {
@@ -107,6 +118,25 @@ export default function JobDetails() {
     toast.success(`"${job.title}" added to your Saved Jobs!`);
   };
 
+  // Recruiter actions on applicants for this job
+  const handleUpdateApplicantStage = (appId, newStatus) => {
+    const updated = applicationService.updateApplicationStage(appId, newStatus, {
+      notes: newStatus === 'Offer Extended' 
+        ? 'Formally Hired / Offer Extended by recruiter Alex Morgan.'
+        : `Hiring stage updated to ${newStatus}.`,
+    });
+    setApplications(updated);
+    toast.success(`Applicant status updated to "${newStatus}"!`);
+  };
+
+  const handleHireApplicant = (applicant) => {
+    const updated = applicationService.updateApplicationStage(applicant.id, 'Offer Extended', {
+      notes: `Formally Hired / Offer Extended by recruiter Alex Morgan for role "${job.title}".`,
+    });
+    setApplications(updated);
+    toast.success(`🎉 Congratulations! ${applicant.applicantName} has been formally hired for "${job.title}"!`);
+  };
+
   if (loading) {
     return (
       <DashboardLayout>
@@ -121,9 +151,12 @@ export default function JobDetails() {
 
   const isOpen = job.status === 'Open';
 
+  // Find all applicants for this specific job
+  const matchingApplicants = applications.filter((a) => String(a.jobId) === String(job.id));
+
   return (
     <DashboardLayout>
-      <div className="max-w-5xl mx-auto space-y-6">
+      <div className="max-w-5xl mx-auto space-y-6 pb-12">
         
         {/* Top Back Nav & Quick Actions */}
         <div className="flex items-center justify-between">
@@ -145,7 +178,7 @@ export default function JobDetails() {
                     : 'bg-slate-200 text-slate-700 border border-slate-300'
                 }`}
               >
-                {isOpen ? <ToggleRight className="w-4 h-4 text-emerald-600" /> : <ToggleLeft className="w-4 h-4" />}
+                {isOpen ? <ToggleRight className="w-4 h-4 text-emerald-600" /> : <ToggleLeft className="w-4 h-4 text-slate-500" />}
                 <span>{job.status}</span>
               </button>
 
@@ -199,32 +232,28 @@ export default function JobDetails() {
                   e.target.onerror = null;
                   e.target.src = `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(job.company)}`;
                 }}
-                className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover ring-4 ring-slate-100 shadow-xs shrink-0"
+                className="w-16 h-16 rounded-2xl object-cover ring-4 ring-slate-100 shrink-0"
               />
               <div className="space-y-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                    {job.title}
-                  </h1>
-                  <span
-                    className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border ${
-                      isOpen
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                        : 'bg-slate-100 text-slate-600 border-slate-200'
-                    }`}
-                  >
+                <div className="flex items-center space-x-2">
+                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${
+                    isOpen ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-200 text-slate-700 border-slate-300'
+                  }`}>
                     {job.status}
                   </span>
+                  <span className="text-xs text-slate-500">
+                    ID: <span className="font-mono">{job.id}</span>
+                  </span>
                 </div>
-
-                <p className="text-xs sm:text-sm font-semibold text-indigo-600">
-                  {job.company} • {job.category}
-                </p>
-
-                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 pt-1">
-                  <span className="flex items-center gap-1 font-medium">
-                    <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                    {job.location}
+                <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                  {job.title}
+                </h1>
+                <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                  <span className="font-bold text-slate-800">{job.company}</span>
+                  <span>•</span>
+                  <span className="flex items-center gap-1">
+                    <MapPin className="w-3 h-3 text-slate-400" />
+                    <span>{job.location}</span>
                   </span>
                   <span>•</span>
                   <span className="px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 font-semibold text-[11px]">
@@ -238,7 +267,7 @@ export default function JobDetails() {
               </div>
             </div>
 
-            {/* Compensation & Apply Block */}
+            {/* Compensation & Role Action Block */}
             <div className="flex flex-col sm:items-end gap-2 shrink-0">
               <div className="text-right sm:text-right">
                 <span className="text-[10px] uppercase font-bold text-slate-400 block">
@@ -249,27 +278,173 @@ export default function JobDetails() {
                 </span>
               </div>
 
+              {/* Recruiter vs Candidate Actions (No apply for recruiter!) */}
               <div className="flex items-center gap-2 mt-1">
-                <button
-                  type="button"
-                  onClick={handleSaveJob}
-                  className="p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition"
-                  title="Save Job"
-                >
-                  <Bookmark className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={handleApply}
-                  disabled={!isOpen}
-                  className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-600/20 transition flex items-center gap-1.5"
-                >
-                  <span>{isOpen ? 'Apply for Position' : 'Applications Closed'}</span>
-                </button>
+                {isRecruiter ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => document.getElementById('applicants-pipeline')?.scrollIntoView({ behavior: 'smooth' })}
+                      className="px-4 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-xl text-xs font-bold transition flex items-center gap-1.5"
+                    >
+                      <Users className="w-4 h-4" />
+                      <span>Review Applicants ({matchingApplicants.length})</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCandidateDirectoryOpen(true)}
+                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-600/20 transition flex items-center gap-1.5"
+                    >
+                      <UserCheck className="w-4 h-4" />
+                      <span>Hire Candidates</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleSaveJob}
+                      className="p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition"
+                      title="Save Job"
+                    >
+                      <Bookmark className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleApply}
+                      disabled={!isOpen}
+                      className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-600/20 transition flex items-center gap-1.5"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      <span>{isOpen ? 'Quick Apply for Position' : 'Applications Closed'}</span>
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>
         </div>
+
+        {/* Recruiter Dedicated: Applicants Pipeline Section */}
+        {isRecruiter && (
+          <div id="applicants-pipeline" className="bg-white rounded-3xl border border-slate-200/90 p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2.5">
+                <div className="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                  <Users className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-slate-900">
+                    Live Applicants Pipeline ({matchingApplicants.length} Candidates)
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Manage incoming submissions, advance screening stages, and extend formal job offers
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setCandidateDirectoryOpen(true)}
+                className="px-3.5 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold transition flex items-center gap-1.5"
+              >
+                <UserCheck className="w-3.5 h-3.5" />
+                <span>Source from Directory</span>
+              </button>
+            </div>
+
+            {matchingApplicants.length > 0 ? (
+              <div className="divide-y divide-slate-100 pt-2">
+                {matchingApplicants.map((applicant) => (
+                  <div key={applicant.id} className="py-4 first:pt-0 last:pb-0 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex items-start space-x-3.5 min-w-0">
+                      <img
+                        src={`https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(applicant.applicantName || 'Candidate')}`}
+                        alt={applicant.applicantName}
+                        className="w-11 h-11 rounded-xl object-cover ring-2 ring-slate-100 shrink-0 bg-slate-50"
+                      />
+                      <div className="min-w-0">
+                        <div className="flex items-center space-x-2">
+                          <h4 className="text-xs font-bold text-slate-900 truncate">
+                            {applicant.applicantName}
+                          </h4>
+                          <span className={`px-2 py-0.2 rounded-full text-[10px] font-extrabold ${
+                            applicant.status === 'Offer Extended'
+                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                              : applicant.status === 'Interview Scheduled'
+                              ? 'bg-purple-100 text-purple-800 border border-purple-300'
+                              : applicant.status === 'Under Review'
+                              ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                              : 'bg-blue-100 text-blue-800 border border-blue-300'
+                          }`}>
+                            {applicant.status}
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 font-medium">
+                          {applicant.applicantEmail} • {applicant.phone || 'Phone verified'}
+                        </p>
+                        <div className="flex items-center gap-2 mt-1 text-[11px] text-indigo-600 font-semibold">
+                          <FileText className="w-3.5 h-3.5" />
+                          <span>{applicant.resumeName || applicant.resume || 'Resume.pdf'}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Recruiter Hiring Action Controls */}
+                    <div className="flex flex-wrap items-center gap-2 shrink-0">
+                      <div className="flex items-center space-x-1.5">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase">Stage:</span>
+                        <select
+                          value={applicant.status}
+                          onChange={(e) => handleUpdateApplicantStage(applicant.id, e.target.value)}
+                          className="px-2.5 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+                        >
+                          <option value="Submitted">1. Submitted</option>
+                          <option value="Under Review">2. Under Review</option>
+                          <option value="Interview Scheduled">3. Interview Scheduled</option>
+                          <option value="Offer Extended">4. Offer Extended</option>
+                          <option value="Rejected">Rejected</option>
+                        </select>
+                      </div>
+
+                      {applicant.status === 'Offer Extended' ? (
+                        <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-100 text-emerald-800 text-xs font-extrabold border border-emerald-300">
+                          <Award className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Candidate Hired!</span>
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleHireApplicant(applicant)}
+                          className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs hover:shadow-emerald-600/20 transition flex items-center gap-1.5"
+                        >
+                          <Award className="w-3.5 h-3.5" />
+                          <span>Hire this Candidate</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="py-8 text-center text-slate-500 text-xs bg-slate-50/50 rounded-2xl border border-slate-100">
+                <Users className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                <p className="font-semibold text-slate-700">No Candidate Applications Yet for this Role</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">
+                  When candidates apply from the job portal or candidate profile, their resumes appear here in real time.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setCandidateDirectoryOpen(true)}
+                  className="mt-3 px-4 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs transition inline-flex items-center gap-1.5"
+                >
+                  <UserCheck className="w-3.5 h-3.5" />
+                  <span>Browse Candidates to Hire</span>
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Detailed Grid: Requirements, Responsibilities, Metadata */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -365,19 +540,40 @@ export default function JobDetails() {
 
                 <div>
                   <span className="text-slate-400 block text-[11px]">Total Applicants</span>
-                  <span className="font-semibold text-indigo-700">{job.applicantsCount || 0} Registered</span>
+                  <span className="font-semibold text-indigo-700">{matchingApplicants.length} Registered</span>
                 </div>
               </div>
 
+              {/* Sidebar Action: Recruiter gets Hire Candidate / Candidate gets Quick Apply */}
               <div className="pt-3 border-t border-slate-100 space-y-2">
-                <button
-                  type="button"
-                  onClick={handleApply}
-                  disabled={!isOpen}
-                  className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition shadow-sm"
-                >
-                  {isOpen ? 'Quick Apply' : 'Position Closed'}
-                </button>
+                {isRecruiter ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => setCandidateDirectoryOpen(true)}
+                      className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center justify-center gap-1.5"
+                    >
+                      <UserCheck className="w-4 h-4" />
+                      <span>Hire Candidate for this Opening</span>
+                    </button>
+                    <Link
+                      to="/applications"
+                      className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition flex items-center justify-center"
+                    >
+                      Open Full ATS Pipeline
+                    </Link>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleApply}
+                    disabled={!isOpen}
+                    className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-xl text-xs font-bold transition shadow-sm flex items-center justify-center gap-1.5"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    <span>{isOpen ? 'Quick Apply' : 'Position Closed'}</span>
+                  </button>
+                )}
               </div>
             </div>
           </div>
@@ -389,6 +585,18 @@ export default function JobDetails() {
         isOpen={applyModalOpen}
         onClose={() => setApplyModalOpen(false)}
         job={job}
+        onApplied={() => loadJobData()}
+      />
+
+      {/* Candidate Directory Modal for Recruiter Hiring */}
+      <QuickActionModal
+        isOpen={candidateDirectoryOpen}
+        onClose={() => {
+          setCandidateDirectoryOpen(false);
+          loadJobData();
+        }}
+        actionType="candidate-search"
+        role="recruiter"
       />
 
       {/* Edit Modal (Recruiter only) */}
@@ -396,15 +604,15 @@ export default function JobDetails() {
         isOpen={editModalOpen}
         onClose={() => setEditModalOpen(false)}
         onSubmit={handleUpdate}
-        jobToEdit={job}
+        initialData={job}
       />
 
-      {/* Delete Modal */}
+      {/* Delete Confirmation Modal (Recruiter only) */}
       <JobDeleteModal
         isOpen={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={handleDelete}
-        jobTitle={job.title}
+        jobTitle={job?.title}
         isDeleting={isDeleting}
       />
     </DashboardLayout>

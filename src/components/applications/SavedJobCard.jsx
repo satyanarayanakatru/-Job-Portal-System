@@ -10,10 +10,11 @@ import {
   ArrowRight, 
   Briefcase,
   CheckCircle2,
-  Calendar
+  Calendar,
+  UserCheck
 } from 'lucide-react';
 
-export default function SavedJobCard({ job, onApply, onRemove }) {
+export default function SavedJobCard({ job, onApply, onRemove, isRecruiter = false }) {
   const formattedSavedDate = job.savedAt
     ? new Date(job.savedAt).toLocaleDateString('en-US', {
         month: 'short',
@@ -54,7 +55,7 @@ export default function SavedJobCard({ job, onApply, onRemove }) {
           <button
             onClick={() => onRemove(job.id)}
             className="p-2 rounded-xl text-amber-500 hover:text-rose-600 hover:bg-rose-50 transition shrink-0"
-            title="Remove from saved jobs"
+            title={isRecruiter ? "Remove from Shortlist" : "Remove from saved jobs"}
           >
             <Bookmark className="w-5 h-5 fill-amber-400 stroke-amber-500 hover:fill-none hover:stroke-rose-600" />
           </button>
@@ -121,13 +122,23 @@ export default function SavedJobCard({ job, onApply, onRemove }) {
           <ArrowRight className="w-3.5 h-3.5" />
         </Link>
 
-        <button
-          onClick={() => onApply(job)}
-          className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs hover:shadow-md shadow-indigo-600/20 transition flex items-center gap-1.5"
-        >
-          <CheckCircle2 className="w-3.5 h-3.5" />
-          <span>Apply Now</span>
-        </button>
+        {isRecruiter ? (
+          <Link
+            to={`/jobs/${job.id}`}
+            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs hover:shadow-md shadow-emerald-600/20 transition flex items-center gap-1.5"
+          >
+            <UserCheck className="w-3.5 h-3.5" />
+            <span>Hire for this Role</span>
+          </Link>
+        ) : (
+          <button
+            onClick={() => onApply(job)}
+            className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs hover:shadow-md shadow-indigo-600/20 transition flex items-center gap-1.5"
+          >
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            <span>Apply Now</span>
+          </button>
+        )}
       </div>
     </div>
   );

@@ -7,14 +7,15 @@ import {
   Building2, 
   DollarSign, 
   MapPin, 
-  Sparkles,
+  Sparkles, 
   AlertCircle,
   UserCheck,
   Search,
   Mail,
   Phone,
   ShieldCheck,
-  Calendar
+  Calendar,
+  Award
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { storage } from '../../utils/localStorage';
@@ -32,6 +33,7 @@ export default function QuickActionModal({ isOpen, onClose, actionType, role }) 
   const [resumeFile, setResumeFile] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [candidateSearchQuery, setCandidateSearchQuery] = useState('');
+  const [applicationsList, setApplicationsList] = useState(() => storage.get('job_portal_applications', []));
 
   if (!isOpen) return null;
 
@@ -70,6 +72,54 @@ export default function QuickActionModal({ isOpen, onClose, actionType, role }) 
     toast.success(`Interview invitation sent to ${candidateName}!`);
   };
 
+  const handleHireCandidate = (candidate) => {
+    const existingApps = storage.get('job_portal_applications', []);
+    const existingJobs = storage.get('job_portal_jobs', []);
+    const defaultJob = existingJobs[0] || { id: 'job_1', title: 'Senior Software Engineer', company: 'TechCorp Global Solutions' };
+
+    const matchingApp = existingApps.find(
+      (a) => a.applicantEmail === candidate.email || a.applicantName === candidate.name
+    );
+
+    let updatedApps;
+    if (matchingApp) {
+      updatedApps = existingApps.map((a) =>
+        a.id === matchingApp.id
+          ? {
+              ...a,
+              status: 'Offer Extended',
+              statusStep: 4,
+              notes: `Recruiter Alex Morgan directly hired and extended formal offer package.`,
+            }
+          : a
+      );
+    } else {
+      const newHired = {
+        id: 'app_' + Date.now(),
+        jobId: String(defaultJob.id),
+        jobTitle: candidate.title || defaultJob.title,
+        company: defaultJob.company || 'TechCorp Global Solutions',
+        companyLogo: defaultJob.companyLogo || candidate.avatar,
+        location: candidate.location || 'Remote, US',
+        salaryRange: defaultJob.salaryRange || '$140,000 - $175,000',
+        applicantName: candidate.name,
+        applicantEmail: candidate.email,
+        phone: candidate.phone || '+1 (555) 345-6789',
+        resumeName: `${candidate.name.replace(/\s+/g, '_')}_Resume.pdf`,
+        resume: `${candidate.name.replace(/\s+/g, '_')}_Resume.pdf`,
+        status: 'Offer Extended',
+        statusStep: 4,
+        appliedAt: new Date().toISOString(),
+        notes: `Recruiter Alex Morgan directly hired and extended formal offer package.`,
+      };
+      updatedApps = [newHired, ...existingApps];
+    }
+
+    storage.set('job_portal_applications', updatedApps);
+    setApplicationsList(updatedApps);
+    toast.success(`🎉 Candidate ${candidate.name} has been hired! Formal offer package extended.`);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
       <div 
@@ -94,14 +144,14 @@ export default function QuickActionModal({ isOpen, onClose, actionType, role }) 
                   ? 'Quick Job Posting'
                   : actionType === 'upload-resume'
                   ? 'Upload Candidate Resume'
-                  : 'Verified Candidate Directory'}
+                  : 'Verified Candidate Directory & Hiring Hub'}
               </h3>
               <p className="text-xs text-slate-500">
                 {actionType === 'post-job'
                   ? 'Publish a live opening to active candidates'
                   : actionType === 'upload-resume'
                   ? 'Attach your latest PDF or Word resume'
-                  : `Browse ${allCandidates.length} real verified candidate profiles and engineers`}
+                  : `Browse ${allCandidates.length} real verified candidate profiles and hire talent`}
               </p>
             </div>
           </div>
@@ -131,68 +181,92 @@ export default function QuickActionModal({ isOpen, onClose, actionType, role }) 
             {/* Candidate Cards List */}
             <div className="flex-1 overflow-y-auto space-y-3 pr-1 min-h-0">
               {filteredCandidates.length > 0 ? (
-                filteredCandidates.map((candidate) => (
-                  <div
-                    key={candidate.id}
-                    className="p-4 rounded-2xl border border-slate-200/80 bg-white hover:border-indigo-200 hover:shadow-xs transition flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-                  >
-                    <div className="flex items-start space-x-3 min-w-0">
-                      <img
-                        src={candidate.avatar}
-                        alt={candidate.name}
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(candidate.name)}`;
-                        }}
-                        className="w-11 h-11 rounded-xl object-cover ring-2 ring-slate-100 shrink-0 bg-slate-100"
-                      />
-                      <div className="min-w-0">
-                        <div className="flex items-center space-x-2">
-                          <h4 className="text-xs font-bold text-slate-900 truncate">
-                            {candidate.name}
-                          </h4>
-                          <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded-md flex items-center gap-0.5">
-                            <ShieldCheck className="w-3 h-3 text-emerald-600" /> Verified
-                          </span>
-                        </div>
-                        <p className="text-[11px] font-medium text-indigo-600">
-                          {candidate.title || 'Software Professional'}
-                        </p>
-                        <div className="flex items-center gap-3 text-[10px] text-slate-500 mt-0.5">
-                          <span>{candidate.location || 'Remote'}</span>
-                          <span>•</span>
-                          <span>{candidate.experience || '4+ yrs experience'}</span>
-                        </div>
+                filteredCandidates.map((candidate) => {
+                  const existingApp = applicationsList.find(
+                    (a) => a.applicantEmail === candidate.email || a.applicantName === candidate.name
+                  );
+                  const isHired = existingApp?.status === 'Offer Extended';
 
-                        {/* Skills */}
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          {(candidate.skills || ['React', 'JavaScript', 'Node.js']).slice(0, 4).map((skill, sIdx) => (
-                            <span
-                              key={sIdx}
-                              className="text-[10px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md"
-                            >
-                              {skill}
+                  return (
+                    <div
+                      key={candidate.id}
+                      className="p-4 rounded-2xl border border-slate-200/80 bg-white hover:border-indigo-200 hover:shadow-xs transition flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                    >
+                      <div className="flex items-start space-x-3 min-w-0">
+                        <img
+                          src={candidate.avatar}
+                          alt={candidate.name}
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(candidate.name)}`;
+                          }}
+                          className="w-11 h-11 rounded-xl object-cover ring-2 ring-slate-100 shrink-0 bg-slate-100"
+                        />
+                        <div className="min-w-0">
+                          <div className="flex items-center space-x-2">
+                            <h4 className="text-xs font-bold text-slate-900 truncate">
+                              {candidate.name}
+                            </h4>
+                            <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded-md flex items-center gap-0.5">
+                              <ShieldCheck className="w-3 h-3 text-emerald-600" /> Verified
                             </span>
-                          ))}
+                          </div>
+                          <p className="text-[11px] font-medium text-indigo-600">
+                            {candidate.title || 'Software Professional'}
+                          </p>
+                          <div className="flex items-center gap-3 text-[10px] text-slate-500 mt-0.5">
+                            <span>{candidate.location || 'Remote'}</span>
+                            <span>•</span>
+                            <span>{candidate.experience || '4+ yrs experience'}</span>
+                          </div>
+
+                          {/* Skills */}
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {(candidate.skills || ['React', 'JavaScript', 'Node.js']).slice(0, 4).map((skill, sIdx) => (
+                              <span
+                                key={sIdx}
+                                className="text-[10px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md"
+                              >
+                                {skill}
+                              </span>
+                            ))}
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="shrink-0 flex sm:flex-col items-center sm:items-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
-                      <button
-                        type="button"
-                        onClick={() => handleInviteCandidate(candidate.name)}
-                        className="w-full sm:w-auto px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-2xs transition flex items-center justify-center gap-1.5"
-                      >
-                        <Calendar className="w-3.5 h-3.5" />
-                        <span>Schedule Interview</span>
-                      </button>
-                      <span className="text-[10px] text-slate-400">
-                        {candidate.email}
-                      </span>
+                      <div className="shrink-0 flex sm:flex-col items-center sm:items-end gap-2 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                        {isHired ? (
+                          <span className="w-full sm:w-auto px-3.5 py-1.5 rounded-xl bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-300 flex items-center justify-center gap-1.5">
+                            <Award className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>Candidate Hired!</span>
+                          </span>
+                        ) : (
+                          <div className="flex flex-wrap items-center gap-1.5 w-full sm:w-auto">
+                            <button
+                              type="button"
+                              onClick={() => handleHireCandidate(candidate)}
+                              className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-2xs transition flex items-center justify-center gap-1.5"
+                            >
+                              <Award className="w-3.5 h-3.5" />
+                              <span>Hire Candidate</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleInviteCandidate(candidate.name)}
+                              className="px-2.5 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-semibold transition flex items-center justify-center gap-1"
+                            >
+                              <Calendar className="w-3.5 h-3.5" />
+                              <span>Interview</span>
+                            </button>
+                          </div>
+                        )}
+                        <span className="text-[10px] text-slate-400">
+                          {candidate.email}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <div className="py-8 text-center text-slate-500 text-xs">
                   No candidates found matching "{candidateSearchQuery}".

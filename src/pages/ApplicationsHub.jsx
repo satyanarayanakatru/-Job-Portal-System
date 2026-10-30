@@ -353,6 +353,7 @@ export default function ApplicationsHub() {
                   job={job}
                   onApply={(j) => setApplyJobTarget(j)}
                   onRemove={handleRemoveSavedJob}
+                  isRecruiter={isRecruiter}
                 />
               ))}
             </div>

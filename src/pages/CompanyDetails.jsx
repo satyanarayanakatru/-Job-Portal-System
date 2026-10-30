@@ -4,6 +4,8 @@ import DashboardLayout from '../components/layout/DashboardLayout';
 import CompanyModal from '../components/companies/CompanyModal';
 import DeleteConfirmModal from '../components/companies/DeleteConfirmModal';
 import SkeletonLoader from '../components/common/SkeletonLoader';
+import QuickApplyModal from '../components/search/QuickApplyModal';
+import { useAuth } from '../context/AuthContext';
 import { companyService } from '../services/companyService';
 import { 
   Building2, 
@@ -21,13 +23,17 @@ import {
   Sparkles,
   ShieldCheck,
   Star,
-  DollarSign
+  DollarSign,
+  UserCheck
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 export default function CompanyDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isRecruiter = user?.role === 'recruiter';
+  const [applyJobTarget, setApplyJobTarget] = useState(null);
 
   const [company, setCompany] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -138,23 +144,25 @@ export default function CompanyDetails() {
             <span>Back to Companies Directory</span>
           </Link>
 
-          {/* Action buttons */}
-          <div className="flex items-center space-x-2">
-            <button
-              onClick={() => setEditModalOpen(true)}
-              className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 shadow-2xs transition"
-            >
-              <Edit3 className="w-3.5 h-3.5 text-indigo-600" />
-              <span>Edit Company</span>
-            </button>
-            <button
-              onClick={() => setDeleteModalOpen(true)}
-              className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-xs font-semibold text-rose-700 transition"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              <span>Delete</span>
-            </button>
-          </div>
+          {/* Action buttons (Recruiter only) */}
+          {isRecruiter && (
+            <div className="flex items-center space-x-2">
+              <button
+                onClick={() => setEditModalOpen(true)}
+                className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 shadow-2xs transition"
+              >
+                <Edit3 className="w-3.5 h-3.5 text-indigo-600" />
+                <span>Edit Company</span>
+              </button>
+              <button
+                onClick={() => setDeleteModalOpen(true)}
+                className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-xs font-semibold text-rose-700 transition"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Company Header Card */}
@@ -292,12 +300,30 @@ export default function CompanyDetails() {
                       </div>
                     </div>
 
-                    <button
-                      onClick={() => toast.info(`Applied to "${job.title}" at ${company.name}!`)}
-                      className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-2xs transition shrink-0"
-                    >
-                      Apply Now
-                    </button>
+                    {isRecruiter ? (
+                      <Link
+                        to="/jobs"
+                        className="px-3.5 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 rounded-xl text-xs font-bold transition shrink-0 flex items-center gap-1.5"
+                      >
+                        <UserCheck className="w-3.5 h-3.5" />
+                        <span>Hire for this Role</span>
+                      </Link>
+                    ) : (
+                      <button
+                        onClick={() => setApplyJobTarget({
+                          id: `job_comp_${job.id}`,
+                          title: job.title,
+                          company: company.name,
+                          companyLogo: company.logo,
+                          location: job.location,
+                          salaryRange: job.salary,
+                          employmentType: job.type
+                        })}
+                        className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold shadow-2xs transition shrink-0"
+                      >
+                        Apply Now
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -313,30 +339,19 @@ export default function CompanyDetails() {
 
               <div className="space-y-3 text-xs">
                 <div>
-                  <span className="text-slate-400 block text-[11px]">Primary Talent Email</span>
-                  <a
-                    href={`mailto:${company.email}`}
-                    className="font-bold text-indigo-600 hover:underline break-all"
-                  >
+                  <span className="text-slate-400 block text-[11px]">Contact Email</span>
+                  <a href={`mailto:${company.email}`} className="font-semibold text-indigo-600 hover:underline">
                     {company.email}
                   </a>
                 </div>
 
                 <div>
-                  <span className="text-slate-400 block text-[11px]">Website</span>
-                  <a
-                    href={company.website}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="font-semibold text-slate-800 hover:text-indigo-600 flex items-center gap-1"
-                  >
-                    <span>{company.website}</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
+                  <span className="text-slate-400 block text-[11px]">Phone Inquiries</span>
+                  <span className="font-semibold text-slate-800">{company.phone}</span>
                 </div>
 
                 <div>
-                  <span className="text-slate-400 block text-[11px]">Global Headquarters</span>
+                  <span className="text-slate-400 block text-[11px]">Headquarters</span>
                   <span className="font-semibold text-slate-800">{company.location}</span>
                 </div>
 
@@ -381,6 +396,13 @@ export default function CompanyDetails() {
         onConfirm={handleDelete}
         companyName={company.name}
         isDeleting={isDeleting}
+      />
+
+      {/* Quick Apply Modal for Candidate Direct Apply */}
+      <QuickApplyModal
+        isOpen={!!applyJobTarget}
+        onClose={() => setApplyJobTarget(null)}
+        job={applyJobTarget}
       />
     </DashboardLayout>
   );

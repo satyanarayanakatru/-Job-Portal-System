@@ -13,7 +13,8 @@ import {
   Trash2,
   Video,
   ChevronRight,
-  Award
+  Award,
+  UserCheck
 } from 'lucide-react';
 
 const STATUS_CONFIG = {
@@ -100,103 +101,98 @@ export default function ApplicationCard({
               <h3 className="text-base font-bold text-slate-900 group-hover:text-indigo-600 transition truncate leading-snug">
                 {application.jobTitle}
               </h3>
-              <p className="text-xs font-semibold text-slate-600 mt-0.5 truncate">
+              <p className="text-xs font-semibold text-slate-600 truncate mt-0.5">
                 {application.company}
               </p>
               
-              {/* Meta pills */}
-              <div className="flex flex-wrap items-center gap-2 mt-2 text-[11px] text-slate-500">
-                {application.location && (
-                  <span className="inline-flex items-center gap-1">
-                    <MapPin className="w-3 h-3 text-slate-400" />
-                    <span>{application.location}</span>
-                  </span>
-                )}
-                {application.salaryRange && (
-                  <span className="inline-flex items-center gap-1 font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                    <DollarSign className="w-3 h-3" />
-                    <span>{application.salaryRange}</span>
-                  </span>
-                )}
-              </div>
+              {/* In recruiter mode, prominently display candidate name and contact */}
+              {isRecruiter && (
+                <div className="flex items-center space-x-2 mt-1.5 text-xs text-indigo-700 bg-indigo-50/60 px-2 py-0.5 rounded-md font-semibold">
+                  <UserCheck className="w-3.5 h-3.5" />
+                  <span>Applicant: <strong className="text-indigo-950">{application.applicantName || 'Sarah Jenkins'}</strong> ({application.applicantEmail})</span>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Status Badge */}
-          <div className="shrink-0 flex flex-col items-end gap-1">
+          <div className="shrink-0">
             <span
-              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ring-1 ${statusInfo.color}`}
+              className={`inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-bold border ring-1 ${statusInfo.color}`}
             >
-              <span className={`w-2 h-2 rounded-full ${statusInfo.dot} animate-pulse`} />
-              {application.status}
-            </span>
-            <span className="text-[10px] text-slate-400 flex items-center gap-1">
-              <Calendar className="w-3 h-3" />
-              Applied {formattedDate}
+              <span className={`w-1.5 h-1.5 rounded-full ${statusInfo.dot}`} />
+              <span>{application.status}</span>
             </span>
           </div>
         </div>
 
-        {/* Pipeline Tracker Bar */}
-        <div className="mt-5 pt-4 border-t border-slate-100">
-          {isWithdrawn ? (
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs text-slate-600">
-              <div className="flex items-center gap-2">
-                <XCircle className="w-4 h-4 text-slate-400 shrink-0" />
-                <span className="font-semibold">Withdrawn on {application.withdrawnAt ? new Date(application.withdrawnAt).toLocaleDateString() : 'N/A'}:</span>
-                <span className="italic text-slate-500 truncate max-w-xs">{application.withdrawalReason || 'Candidate withdrew'}</span>
-              </div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Archived</span>
-            </div>
-          ) : (
-            <div>
-              <div className="flex items-center justify-between relative mb-2">
-                {/* Connecting track line */}
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-slate-100 w-full z-0 rounded-full" />
-                <div 
-                  className="absolute left-0 top-1/2 -translate-y-1/2 h-1 bg-indigo-600 transition-all duration-500 z-0 rounded-full"
-                  style={{
-                    width: `${((Math.max(1, currentStep) - 1) / 3) * 100}%`
-                  }}
-                />
+        {/* Badges / Meta Info */}
+        <div className="mt-3.5 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+          <span className="inline-flex items-center gap-1 font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+            <DollarSign className="w-3.5 h-3.5" />
+            <span>{application.salaryRange || 'Competitive'}</span>
+          </span>
 
-                {/* Pipeline step nodes */}
-                {PIPELINE_STEPS.map((stepItem) => {
-                  const isCompleted = currentStep > stepItem.step;
-                  const isCurrent = currentStep === stepItem.step;
-                  return (
-                    <div key={stepItem.step} className="relative z-10 flex flex-col items-center">
-                      <div
-                        className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${
-                          isCompleted
-                            ? 'bg-indigo-600 text-white shadow-xs'
-                            : isCurrent
-                            ? 'bg-white border-2 border-indigo-600 text-indigo-600 ring-4 ring-indigo-50 shadow-xs'
-                            : 'bg-white border-2 border-slate-200 text-slate-400'
-                        }`}
-                      >
-                        {isCompleted ? <CheckCircle2 className="w-3.5 h-3.5" /> : stepItem.step}
-                      </div>
-                      <span
-                        className={`text-[10px] font-semibold mt-1 transition ${
-                          isCurrent
-                            ? 'text-indigo-600 font-bold'
-                            : isCompleted
-                            ? 'text-slate-700'
-                            : 'text-slate-400'
-                        }`}
-                      >
-                        {stepItem.label}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          <span className="inline-flex items-center gap-1 bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">
+            <MapPin className="w-3 h-3 text-slate-400" />
+            <span>{application.location || 'Remote'}</span>
+          </span>
+
+          <span className="inline-flex items-center gap-1 text-slate-400 ml-1">
+            <Calendar className="w-3.5 h-3.5" />
+            <span>Applied {formattedDate}</span>
+          </span>
         </div>
 
-        {/* Special Notification for Interview or Offer */}
+        {/* 4-Stage Interactive Pipeline Stepper */}
+        {!isWithdrawn && (
+          <div className="mt-5 pt-4 border-t border-slate-100">
+            <div className="flex items-center justify-between relative">
+              {/* Stepper Progress Bar Line */}
+              <div className="absolute top-3.5 left-6 right-6 h-0.5 bg-slate-200 -z-0">
+                <div
+                  className="h-full bg-indigo-600 transition-all duration-500"
+                  style={{
+                    width: `${((Math.max(1, currentStep) - 1) / 3) * 100}%`,
+                  }}
+                />
+              </div>
+
+              {/* Step Circles */}
+              {PIPELINE_STEPS.map((s) => {
+                const isPassed = currentStep >= s.step;
+                const isCurrent = currentStep === s.step;
+
+                return (
+                  <div key={s.step} className="flex flex-col items-center relative z-10">
+                    <div
+                      className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all shadow-xs ${
+                        isPassed
+                          ? 'bg-indigo-600 text-white ring-4 ring-indigo-50'
+                          : 'bg-white text-slate-400 border-2 border-slate-200'
+                      }`}
+                    >
+                      {isPassed ? <CheckCircle2 className="w-4 h-4" /> : s.step}
+                    </div>
+                    <span
+                      className={`text-[10px] mt-1.5 font-semibold transition ${
+                        isCurrent
+                          ? 'text-indigo-600 font-extrabold'
+                          : isPassed
+                          ? 'text-slate-700'
+                          : 'text-slate-400'
+                      }`}
+                    >
+                      {s.label}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Dynamic Context Alert */}
         {application.status === 'Interview Scheduled' && application.interviewDate && (
           <div className="mt-3.5 p-3 rounded-xl bg-purple-50/80 border border-purple-200 flex items-center justify-between text-xs">
             <div className="flex items-center space-x-2 text-purple-900 font-medium">
@@ -219,7 +215,7 @@ export default function ApplicationCard({
             <div className="flex items-center space-x-2 text-emerald-900 font-medium">
               <Award className="w-4 h-4 text-emerald-600 shrink-0" />
               <span>
-                <strong>Formal Offer Package Ready!</strong> Please review terms and compensation details.
+                <strong>Formal Offer Package Ready!</strong> Candidate has been hired.
               </span>
             </div>
             <button
@@ -244,8 +240,8 @@ export default function ApplicationCard({
       </div>
 
       {/* Bottom Actions Bar */}
-      <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
+      <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* View Details */}
           <button
             onClick={() => onViewDetails(application)}
@@ -255,21 +251,40 @@ export default function ApplicationCard({
             <span>{isRecruiter ? 'Review Application' : 'View Timeline'}</span>
           </button>
 
-          {/* Recruiter Stage Advance Selector */}
+          {/* Recruiter Stage Advance Selector & Hire Button */}
           {isRecruiter ? (
-            <div className="flex items-center space-x-1.5">
-              <span className="text-[10px] font-bold text-slate-400 uppercase hidden sm:inline">Hiring Stage:</span>
-              <select
-                value={application.status}
-                onChange={(e) => onUpdateStage && onUpdateStage(application.id, e.target.value)}
-                className="px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 cursor-pointer"
-              >
-                <option value="Submitted">1. Submitted</option>
-                <option value="Under Review">2. Under Review</option>
-                <option value="Interview Scheduled">3. Interview Scheduled</option>
-                <option value="Offer Extended">4. Offer Extended</option>
-                <option value="Rejected">Rejected</option>
-              </select>
+            <div className="flex flex-wrap items-center gap-2">
+              <div className="flex items-center space-x-1">
+                <span className="text-[10px] font-bold text-slate-400 uppercase hidden sm:inline">Stage:</span>
+                <select
+                  value={application.status}
+                  onChange={(e) => onUpdateStage && onUpdateStage(application.id, e.target.value)}
+                  className="px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-indigo-500 cursor-pointer"
+                >
+                  <option value="Submitted">1. Submitted</option>
+                  <option value="Under Review">2. Under Review</option>
+                  <option value="Interview Scheduled">3. Interview Scheduled</option>
+                  <option value="Offer Extended">4. Offer Extended</option>
+                  <option value="Rejected">Rejected</option>
+                </select>
+              </div>
+
+              {application.status === 'Offer Extended' ? (
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-100 text-emerald-800 text-xs font-extrabold border border-emerald-300">
+                  <Award className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Candidate Hired!</span>
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => onUpdateStage && onUpdateStage(application.id, 'Offer Extended')}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs hover:shadow-emerald-600/20 transition"
+                  title="Directly Hire & Extend Offer"
+                >
+                  <Award className="w-3.5 h-3.5" />
+                  <span>Hire this Candidate</span>
+                </button>
+              )}
             </div>
           ) : (
             /* Candidate Withdraw Action */

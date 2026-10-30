@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import { 
   Building2, 
   MapPin, 
@@ -11,12 +12,16 @@ import {
   Sparkles, 
   CheckCircle2, 
   Clock,
-  Send
+  Send,
+  Users,
+  UserCheck
 } from 'lucide-react';
 import { storage } from '../../utils/localStorage';
 import { toast } from 'react-toastify';
 
 export default function JobSearchCard({ job, onQuickApply, isSaved, onToggleSave }) {
+  const { user } = useAuth();
+  const isRecruiter = user?.role === 'recruiter';
   const isOpen = job.status === 'Open';
 
   // Check if closing soon
@@ -55,19 +60,21 @@ export default function JobSearchCard({ job, onQuickApply, isSaved, onToggleSave
             </div>
           </div>
 
-          {/* Bookmark Button */}
-          <button
-            type="button"
-            onClick={() => onToggleSave(job)}
-            className={`p-2 rounded-xl border transition shrink-0 ${
-              isSaved
-                ? 'bg-purple-50 text-purple-600 border-purple-200 shadow-2xs'
-                : 'text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 border-slate-200/80'
-            }`}
-            title={isSaved ? 'Remove from Saved Jobs' : 'Save Job Opportunity'}
-          >
-            <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-purple-600' : ''}`} />
-          </button>
+          {/* Bookmark Button (Candidate Only) */}
+          {!isRecruiter && (
+            <button
+              type="button"
+              onClick={() => onToggleSave(job)}
+              className={`p-2 rounded-xl border transition shrink-0 ${
+                isSaved
+                  ? 'bg-purple-50 text-purple-600 border-purple-200 shadow-2xs'
+                  : 'text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 border-slate-200/80'
+              }`}
+              title={isSaved ? 'Remove from Saved Jobs' : 'Save Job Opportunity'}
+            >
+              <Bookmark className={`w-4 h-4 ${isSaved ? 'fill-purple-600' : ''}`} />
+            </button>
+          )}
         </div>
 
         {/* Badges: Salary, Location, Type, Level */}
@@ -130,14 +137,36 @@ export default function JobSearchCard({ job, onQuickApply, isSaved, onToggleSave
           >
             View Details
           </Link>
-          <button
-            type="button"
-            onClick={() => onQuickApply(job)}
-            className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs hover:shadow-indigo-600/20 transition flex items-center gap-1"
-          >
-            <Send className="w-3 h-3" />
-            <span>Quick Apply</span>
-          </button>
+
+          {isRecruiter ? (
+            /* Recruiter Options: Never show Apply! */
+            <>
+              <Link
+                to={`/jobs/${job.id}`}
+                className="px-3.5 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold transition flex items-center gap-1.5"
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span>Applicants ({job.applicantsCount || 0})</span>
+              </Link>
+              <Link
+                to={`/jobs/${job.id}`}
+                className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs hover:shadow-emerald-600/20 transition flex items-center gap-1.5"
+              >
+                <UserCheck className="w-3.5 h-3.5" />
+                <span>Hire Candidate</span>
+              </Link>
+            </>
+          ) : (
+            /* Candidate Options: Quick Apply */
+            <button
+              type="button"
+              onClick={() => onQuickApply(job)}
+              className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs hover:shadow-indigo-600/20 transition flex items-center gap-1"
+            >
+              <Send className="w-3 h-3" />
+              <span>Quick Apply</span>
+            </button>
+          )}
         </div>
       </div>
     </div>
